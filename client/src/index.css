@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #137fec;
+  --color-background-light: #f6f7f8;
+  --color-background-dark: #101922;
+  --color-accent-green: #10b981;
+
+  --font-display: "Inter", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply font-display bg-background-light text-slate-800 transition-colors duration-300;
+  }
+}
+
+.hero-bg {
+  background-image: linear-gradient(rgba(19, 127, 236, 0.85), rgba(19, 127, 236, 0.95)), url(https://lh3.googleusercontent.com/aida-public/AB6AXuBfIOJGRTOwZR_-uM9PVZtgyXbCHbiisarg6GQeKvFe9mK7opm7x9ybyR-Y37dHYCPxcOX4BSNWwnsYJ8vp3vhpdf69LtGNa0w-ubpzq_we8BeY3kJ_DGnM1qM1WZwu96bWB-KoDmLDUJayBguGHIKhwHIja2yZWWUpWGZPLuWc-8Di9CXzSGad0C78dEzeZSFwTgnitMgQqTOAOyf17Vp7EEdtWGpLL8qgBcHQ2otbFGAzAerD6BJRvaweM3AbWMl4PUbk94FTDi8);
+  background-size: cover;
+  background-position: center;
+}
+
+/* Hide scrollbar for Chrome, Safari and Edge */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for Firefox */
+html {
+  scrollbar-width: none;
+}
+
+/* Hide scrollbar for IE, Edge */
+body {
+  -ms-overflow-style: none;
+}
+
