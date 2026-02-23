@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+
+model AdminProfile {
+  id        String   @id @db.Uuid
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+
+  @@map("admin_profiles")
+}
+
+model Department {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  doctors   Doctor[]
+
+  @@map("departments")
+}
+
+model Doctor {
+  id           String   @id @default(uuid()) @db.Uuid
+  fullName     String
+  phoneNumber  String?
+  departmentId String?  @db.Uuid
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  department   Department?      @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  schedules    DoctorSchedule[]
+  opdEntries   OpdEntry[]
+
+  @@index([departmentId])
+  @@map("doctors")
+}
+
+model DoctorSchedule {
+  id        String   @id @default(uuid()) @db.Uuid
+  doctorId  String   @db.Uuid
+
+  dayOfWeek DayOfWeek
+  startTime DateTime
+  endTime   DateTime
+
+  room      String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  doctor    Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@index([doctorId, dayOfWeek])
+  @@map("doctor_schedules")
+}
+
+model OpdSheet {
+  id          String   @id @default(uuid()) @db.Uuid
+  sheetDateBs String   @unique
+  sheetMonth  String?
+  notes       String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  entries     OpdEntry[]
+
+  @@map("opd_sheets")
+}
+
+model OpdEntry {
+  id          String   @id @default(uuid()) @db.Uuid
+  sheetId     String   @db.Uuid
+
+  caseType    CaseType
+
+  regNo       String?
+  patientName String
+  age         Int?
+  address     String?
+  phoneNo     String?
+  treatment   String?
+
+  doctorId    String?  @db.Uuid
+
+  totalAmount   Decimal @default(0)
+  paymentMethod PaymentMethod @default(CASH)
+  paidAmount    Decimal @default(0)
+  dueAmount     Decimal @default(0)
+  expenseAmount Decimal @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  sheet       OpdSheet @relation(fields: [sheetId], references: [id], onDelete: Cascade)
+  doctor      Doctor?  @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+
+  @@index([sheetId])
+  @@index([doctorId])
+  @@map("opd_entries")
+}
+
+enum CaseType {
+  NEW
+  OLD
+}
+
+enum PaymentMethod {
+  CASH
+  ONLINE
+  CARD
+  OTHER
+}
+
+enum DayOfWeek {
+  SUN
+  MON
+  TUE
+  WED
+  THU
+  FRI
+  SAT
+}
