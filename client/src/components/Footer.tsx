@@ -8,7 +8,7 @@ const Footer = () => {
             <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-12">
                 <div className="col-span-1 md:col-span-1">
                     <div className="flex items-center gap-2 mb-8">
-                        <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                        <div className="w-10 h-10 bg-site-primary rounded-lg flex items-center justify-center">
                             <Smile className="text-white w-6 h-6" />
                         </div>
                         <span className="text-2xl font-bold tracking-tight text-white">Prestin Dental</span>
@@ -21,20 +21,20 @@ const Footer = () => {
                 <div>
                     <h4 className="text-white font-bold mb-8 uppercase tracking-widest text-sm">Quick Links</h4>
                     <ul className="space-y-4">
-                        <li><Link to="/about" className="hover:text-primary transition-colors">About Us</Link></li>
-                        <li><Link to="/doctors" className="hover:text-primary transition-colors">Our Doctors</Link></li>
-                        <li><Link to="/" className="hover:text-primary transition-colors">Patient Portal</Link></li>
-                        <li><Link to="/contact" className="hover:text-primary transition-colors">Contact</Link></li>
+                        <li><Link to="/about" className="hover:text-site-primary transition-colors">About Us</Link></li>
+                        <li><Link to="/doctors" className="hover:text-site-primary transition-colors">Our Doctors</Link></li>
+                        <li><Link to="/" className="hover:text-site-primary transition-colors">Patient Portal</Link></li>
+                        <li><Link to="/contact" className="hover:text-site-primary transition-colors">Contact</Link></li>
                     </ul>
                 </div>
 
                 <div>
                     <h4 className="text-white font-bold mb-8 uppercase tracking-widest text-sm">Our Services</h4>
                     <ul className="space-y-4">
-                        <li><Link to="/services" className="hover:text-primary transition-colors">General Dentistry</Link></li>
-                        <li><Link to="/services" className="hover:text-primary transition-colors">Orthodontics</Link></li>
-                        <li><Link to="/services" className="hover:text-primary transition-colors">Pediatric Dentistry</Link></li>
-                        <li><Link to="/services" className="hover:text-primary transition-colors">Emergency Dental</Link></li>
+                        <li><Link to="/services" className="hover:text-site-primary transition-colors">General Dentistry</Link></li>
+                        <li><Link to="/services" className="hover:text-site-primary transition-colors">Orthodontics</Link></li>
+                        <li><Link to="/services" className="hover:text-site-primary transition-colors">Pediatric Dentistry</Link></li>
+                        <li><Link to="/services" className="hover:text-site-primary transition-colors">Emergency Dental</Link></li>
                     </ul>
                 </div>
 
@@ -45,9 +45,9 @@ const Footer = () => {
                         <input
                             type="email"
                             placeholder="Email address"
-                            className="bg-slate-800 border-none rounded-lg px-4 py-2 w-full text-white focus:ring-2 focus:ring-primary outline-none"
+                            className="bg-slate-800 border-none rounded-lg px-4 py-2 w-full text-white focus:ring-2 focus:ring-site-primary outline-none"
                         />
-                        <button className="bg-primary text-white p-2 rounded-lg hover:bg-blue-600 transition-colors">
+                        <button className="bg-site-primary text-white p-2 rounded-lg hover:bg-blue-600 transition-colors">
                             <Send className="w-5 h-5" />
                         </button>
                     </div>

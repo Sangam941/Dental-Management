@@ -70,17 +70,17 @@ const Home = () => {
 
                 <div className="max-w-7xl mx-auto px-6 relative z-10 w-full">
                     <div className="max-w-3xl">
-                        <span className="inline-block px-4 py-1.5 bg-primary/20 text-primary border border-primary/30 rounded-full text-sm font-bold uppercase tracking-wider mb-6">
+                        <span className="inline-block px-4 py-1.5 bg-site-primary/20 text-site-primary border border-site-primary/30 rounded-full text-sm font-bold uppercase tracking-wider mb-6">
                             World Class Dental Care
                         </span>
                         <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-8 leading-tight">
-                            Your Smile is Our <span className="text-primary">Priority</span>
+                            Your Smile is Our <span className="text-site-primary">Priority</span>
                         </h1>
                         <p className="text-xl text-slate-200 leading-relaxed mb-10 max-w-2xl">
                             Experience the highest standard of dental care with our state-of-the-art facilities and dedicated team of specialists.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4">
-                            <Link to="/appointment" className="bg-primary hover:bg-blue-600 text-white px-8 py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 text-lg">
+                            <Link to="/appointment" className="bg-site-primary hover:bg-blue-600 text-white px-8 py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 text-lg">
                                 Book Appointment <ArrowRight className="w-5 h-5" />
                             </Link>
                             <Link to="/doctors" className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/30 px-8 py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 text-lg">
@@ -94,9 +94,9 @@ const Home = () => {
             {/* Features Section */}
             <section className="py-24 px-6 max-w-7xl mx-auto">
                 <div className="text-center max-w-3xl mx-auto mb-16">
-                    <h2 className="text-primary font-bold uppercase tracking-widest text-sm mb-4">Why Choose Us</h2>
-                    <h3 className="text-4xl font-bold text-slate-900 mb-6">Comprehensive Care for You</h3>
-                    <p className="text-slate-600 text-lg">
+                    <h2 className="text-site-primary font-bold uppercase tracking-widest text-sm mb-4">Why Choose Us</h2>
+                    <h3 className="text-4xl font-bold text-site-text mb-6">Comprehensive Care for You</h3>
+                    <p className="text-site-text-muted text-lg">
                         We are committed to providing exceptional patient care with a focus on clinical excellence, safety, and compassion.
                     </p>
                 </div>
@@ -119,10 +119,10 @@ const Home = () => {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
                         {homeStats.map((stat, index) => (
                             <div key={index} className="text-center">
-                                <h3 className="text-4xl md:text-5xl font-extrabold text-primary mb-2">
+                                <h3 className="text-4xl md:text-5xl font-extrabold text-site-primary mb-2">
                                     {stat.value === '24/7' ? stat.value : <StatCounter endValue={stat.value} />}
                                 </h3>
-                                <p className="text-slate-600 font-medium">{stat.label}</p>
+                                <p className="text-site-text-muted font-medium">{stat.label}</p>
                             </div>
                         ))}
                     </div>
@@ -134,8 +134,8 @@ const Home = () => {
                 <div className="max-w-7xl mx-auto">
                     <div className="flex justify-between items-start mb-12">
                         <div>
-                            <h2 className="text-4xl font-bold text-slate-900 mb-4">Voices of Recovery</h2>
-                            <p className="text-slate-600 text-lg max-w-2xl">
+                            <h2 className="text-4xl font-bold text-site-text mb-4">Voices of Recovery</h2>
+                            <p className="text-site-text-muted text-lg max-w-2xl">
                                 Hear directly from the patients who have experienced the care and compassion of our medical teams.
                             </p>
                         </div>

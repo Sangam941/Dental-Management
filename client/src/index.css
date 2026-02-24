@@ -1,17 +1,116 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #137fec;
-  --color-background-light: #f6f7f8;
-  --color-background-dark: #101922;
-  --color-accent-green: #10b981;
+  /* ─── Main Website Tokens ─────────────────────────── */
+  --color-site-primary: #137fec;
+  --color-site-bg: #ffffff;
+  --color-site-bg-muted: #f8fafc;
+  --color-site-text: #0f172a;
+  --color-site-text-muted: #64748b;
 
+  /* ─── Admin Color Tokens ──────────────────────────── */
+  --color-admin-primary: #137fec;
+  --color-admin-primary-hover: #0e6fd0;
+
+  /* Backgrounds */
+  --color-admin-bg: #f8fafc;
+  --color-admin-card: #ffffff;
+  --color-admin-surface: #f8fafc;
+
+  /* Borders */
+  --color-admin-border: #e2e8f0;
+  --color-admin-border-subtle: #f1f5f9;
+
+  /* Text */
+  --color-admin-text: #1e293b;
+  --color-admin-text-muted: #64748b;
+  --color-admin-text-faint: #94a3b8;
+
+  /* Status Colors */
+  --color-admin-success: #10b981;
+  --color-admin-success-bg: #ecfdf5;
+  --color-admin-success-border: #d1fae5;
+  --color-admin-warning: #f59e0b;
+  --color-admin-warning-bg: #fffbeb;
+  --color-admin-warning-border: #fde68a;
+  --color-admin-danger: #ef4444;
+  --color-admin-danger-bg: #fef2f2;
+  --color-admin-danger-border: #fecaca;
+
+  /* ─── Font Tokens ─────────────────────────────────── */
   --font-display: "Inter", sans-serif;
+  --font-admin-display: "Inter", sans-serif;
+  --weight-admin-title: 900;
+  --tracking-admin-tight: -0.025em;
 }
 
 @layer base {
   body {
-    @apply font-display bg-background-light text-slate-800 transition-colors duration-300;
+    @apply font-display bg-site-bg text-site-text transition-colors duration-300;
+  }
+
+  button {
+    @apply cursor-pointer;
+  }
+}
+
+@layer components {
+
+  /* ── Page Titles ─────────────────────────────────── */
+  .admin-title {
+    @apply font-black tracking-tight text-admin-text;
+  }
+
+  /* ── Primary Action Button ───────────────────────── */
+  .admin-button-primary {
+    @apply bg-admin-primary text-white font-semibold tracking-tight rounded-xl shadow-lg hover:opacity-90 transition-all;
+  }
+
+  /* ── Secondary / Ghost Button ───────────────────── */
+  .admin-button-secondary {
+    @apply border border-admin-border bg-white text-admin-text font-semibold rounded-xl hover:bg-admin-surface transition-all shadow-sm;
+  }
+
+  /* ── Card Container ──────────────────────────────── */
+  .admin-card {
+    @apply bg-admin-card rounded-2xl border border-admin-border shadow-sm;
+  }
+
+  /* ── Section Header (inside a card) ─────────────── */
+  .admin-section-header {
+    @apply p-4 border-b border-admin-border-subtle bg-admin-surface/50 flex items-center gap-2 text-admin-text font-bold text-sm;
+  }
+
+  /* ── Form Label ──────────────────────────────────── */
+  .admin-label {
+    @apply text-[10px] font-bold text-admin-text-muted uppercase tracking-tight;
+  }
+
+  /* ── Form Input ──────────────────────────────────── */
+  .admin-input {
+    @apply w-full px-4 py-2.5 border border-admin-border rounded-xl text-admin-text text-sm font-medium focus:ring-2 focus:ring-admin-primary/20 focus:border-admin-primary focus:outline-none transition-all placeholder:text-admin-text-faint bg-white;
+  }
+
+  /* ── Status Badge variants ───────────────────────── */
+  .admin-badge-success {
+    @apply px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border bg-admin-success-bg text-admin-success border-admin-success-border;
+  }
+
+  .admin-badge-warning {
+    @apply px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border bg-admin-warning-bg text-admin-warning border-admin-warning-border;
+  }
+
+  .admin-badge-danger {
+    @apply px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border bg-admin-danger-bg text-admin-danger border-admin-danger-border;
+  }
+
+  .admin-badge-neutral {
+    @apply px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border bg-admin-surface text-admin-text-muted border-admin-border;
+  }
+
+  /* ── Table Header Row ────────────────────────────── */
+  .admin-table-head {
+    @apply bg-admin-surface/50 text-[11px] font-black text-admin-text-muted uppercase tracking-widest border-b border-admin-border-subtle;
   }
 }
 
@@ -35,4 +134,3 @@ html {
 body {
   -ms-overflow-style: none;
 }
-
