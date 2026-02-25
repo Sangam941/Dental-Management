@@ -1,11 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
-import OPDStats from '../components/opd/OPDStats';
-import OPDTable from '../components/opd/OPDTable';
 
 
-import { DUMMY_OPD_RECORDS as dummyRecords, DUMMY_OPD_STATS as dummyStats } from '../data/dummyData';
+import { DUMMY_OPD_RECORDS as dummyRecords, DUMMY_OPD_STATS as dummyStats } from '../../../data/dummyData';
+import OPDStats from '../../../components/opd/OPDStats';
+import OPDTable from '../../../components/opd/OPDTable';
 
 const DailyOPDManagement: React.FC = () => {
     return (

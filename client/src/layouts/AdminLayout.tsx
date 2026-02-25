@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, NavLink } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard,
     Users,
@@ -13,6 +13,7 @@ import {
     Archive,
     Building2
 } from 'lucide-react';
+import { useAuthStore } from '../store/authStore';
 
 const AdminLayout: React.FC = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -56,6 +57,9 @@ const AdminLayout: React.FC = () => {
     ];
 
     const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+    const navigate = useNavigate()
+
+    const {logout} = useAuthStore()
 
     return (
         <div className="flex min-h-screen bg-admin-bg font-display relative">
@@ -79,7 +83,7 @@ const AdminLayout: React.FC = () => {
                             <Hospital size={24} className="text-white" />
                         </div>
                         <div>
-                            <h2 className="text-xl admin-title">HealthFirst</h2>
+                            <h2 className="text-xl admin-title">Prestin Dental</h2>
                             <p className="text-[10px] font-bold text-admin-text-muted uppercase tracking-widest">Hospital Management</p>
                         </div>
                     </div>
@@ -128,7 +132,12 @@ const AdminLayout: React.FC = () => {
                             <p className="text-[10px] font-bold text-admin-text-muted uppercase tracking-tight">Administrator</p>
                         </div>
                     </div>
-                    <button className="flex mx-4 items-center justify-center border border-red-200 gap-3 w-[calc(100%-32px)] py-3 rounded-xl text-sm font-bold text-rose-500 hover:bg-rose-50 transition-all cursor-pointer">
+                    <button 
+                    onClick={()=>{
+                        logout();
+                        navigate('/admin/login');
+                    }}
+                    className="flex mx-4 items-center justify-center border border-red-200 gap-3 w-[calc(100%-32px)] py-3 rounded-xl text-sm font-bold text-rose-500 hover:bg-rose-50 transition-all cursor-pointer">
                         <LogOut size={20} />
                         Logout
                     </button>

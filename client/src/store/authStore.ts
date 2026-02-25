@@ -9,6 +9,7 @@ interface AuthStore extends AuthState {
     login: (email: string, password: string) => Promise<void>;
     logout: () => void;
     checkAuth: () => boolean;
+    loading: boolean;
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -17,29 +18,37 @@ export const useAuthStore = create<AuthStore>()(
             user: null,
             token: null,
             isAuthenticated: false,
+            loading: false,
 
             login: async (email, password) => {
                 // Import toast here to avoid potential SSR/serialization issues with Zustand
+                set({
+                    loading: true
+                })
                 try {
                     const data = await loginApi({ email, password });
 
                     // Assuming data has: { user: { id, email, role }, token }
                     const authUser = {
-                        id: data.user.id,
-                        email: data.user.email,
-                        role: data.user.role,
+                        id: data.admin.id,
+                        email: data.admin.email,
                         token: data.token,
                     };
 
                     set({
                         isAuthenticated: true,
-                        user: { id: data.user.id, email: data.user.email, role: data.user.role },
+                        user: { id: data.admin.id, email: data.admin.email },
                     });
                     localStorage.setItem('authUser', JSON.stringify(authUser));
                     toast.success('Login successful!');
                 } catch (error) {
                     toast.error('Invalid email or password');
                     throw new Error('Invalid credentials');
+                }
+                finally{
+                    set({
+                        loading: false
+                    })
                 }
             },
             logout: () => {

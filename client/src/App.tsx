@@ -1,29 +1,32 @@
-
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
 import Layout from './layouts/Layout';
+import { useAuthStore } from './store/authStore';
+import Home from './pages/public/Home';
+import About from './pages/public/About';
+import Contact from './pages/public/Contact';
+import Doctors from './pages/public/Doctors';
+import Services from './pages/public/Services';
+import AdminDashboard from './pages/admin/dashboard/AdminDashboard';
+import AddDoctor from './pages/admin/doctors/AddDoctor';
+import ManageDoctors from './pages/admin/doctors/ManageDoctors';
+import Patients from './pages/admin/patients/Patients';
+import AddPatient from './pages/admin/patients/AddPatient';
+import Inventory from './pages/admin/inventory/Inventory';
+import Appointments from './pages/admin/appointments/Appointments';
+import AddAppointment from './pages/admin/appointments/AddAppointment';
+import AddItem from './pages/admin/inventory/AddItem';
+import Login from './pages/auth/Login';
 import AdminLayout from './layouts/AdminLayout';
-import Home from './pages/Home';
-import About from './pages/About';
-import Contact from './pages/Contact';
-import Doctors from './pages/Doctors';
-import Services from './pages/Services';
-import DailyOPDManagement from './pages/DailyOPDManagement';
-import DailyOPDEntry from './pages/DailyOPDEntry';
-import AddDoctor from './pages/AddDoctor';
-import ManageDoctors from './pages/ManageDoctors';
-import Patients from './pages/Patients';
-import AddPatient from './pages/AddPatient';
-import AdminDashboard from './pages/AdminDashboard';
-import Inventory from './pages/Inventory';
-import AddItem from './pages/AddItem';
-import Appointments from './pages/Appointments';
-import AddAppointment from './pages/AddAppointment';
-import Departments from './pages/Departments';
-import Login from './pages/Login';
+import Departments from './pages/admin/departments/Departments';
+
+const ProtectedAdminRoute = () => {
+  const { isAuthenticated } = useAuthStore();
+  return isAuthenticated ? <AdminLayout /> : <Navigate to="/admin/login" replace />;
+};
 
 const router = createBrowserRouter([
   {
-    path: "/login",
+    path: "/admin/login",
     element: <Login />,
   },
   {
@@ -40,7 +43,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/admin",
-    element: <AdminLayout />,
+    element: <ProtectedAdminRoute />,
     children: [
       { index: true, element: <AdminDashboard /> },
       { path: "dashboard", element: <AdminDashboard /> },
@@ -53,7 +56,7 @@ const router = createBrowserRouter([
       { path: "inventory", element: <Inventory /> },
       { path: "inventory/add-item", element: <AddItem /> },
       { path: "departments", element: <Departments /> },
-      { path: "doctors", element: <Doctors /> }, // Public list
+      { path: "doctors", element: <Doctors /> },
     ],
   },
 ]);

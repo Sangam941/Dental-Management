@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-import { DUMMY_APPOINTMENTS as appointmentData } from '../data/dummyData';
+import { DUMMY_APPOINTMENTS as appointmentData } from '../../../data/dummyData.ts';
 
 const Appointments: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');

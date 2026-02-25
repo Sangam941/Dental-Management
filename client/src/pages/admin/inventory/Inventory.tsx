@@ -22,7 +22,7 @@ const stats = [
 const categories = ['All Categories', 'Medicine', 'Service'];
 const subCategories = ['All Sub-Categories', 'Antibiotics', 'OPD', 'Radiology', 'Diabetes Care', 'Lab Test', 'Analgesic'];
 
-import { DUMMY_INVENTORY as initialInventory } from '../data/dummyData';
+import { DUMMY_INVENTORY as initialInventory } from '../../../data/dummyData';
 
 const Inventory: React.FC = () => {
     const navigate = useNavigate();

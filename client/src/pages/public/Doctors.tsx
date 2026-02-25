@@ -1,6 +1,6 @@
 
 import { ChevronRight, ChevronLeft, Phone, Stethoscope } from 'lucide-react';
-import DoctorCard from '../components/ui/DoctorCard';
+import DoctorCard from '../../components/ui/DoctorCard';
 
 const doctors = [
     {

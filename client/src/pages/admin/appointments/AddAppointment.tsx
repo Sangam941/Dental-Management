@@ -22,7 +22,7 @@ import {
     APPOINTMENT_TYPES as appointmentTypes,
     TIME_SLOTS as timeSlots,
     DUMMY_PATIENTS as registeredPatients
-} from '../data/dummyData';
+} from '../../../data/dummyData';
 
 const AddAppointment: React.FC = () => {
     const navigate = useNavigate();

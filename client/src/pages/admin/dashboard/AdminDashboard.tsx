@@ -1,11 +1,12 @@
 import React from 'react';
 import { Plus, Download } from 'lucide-react';
-import DashboardStats from '../components/dashboard/DashboardStats';
-import RevenueTrends from '../components/dashboard/RevenueTrends';
-import DepartmentSales from '../components/dashboard/DepartmentSales';
-import RecentActivity from '../components/dashboard/RecentActivity';
+import DashboardStats from '../../../components/dashboard/DashboardStats';
+import RevenueTrends from '../../../components/dashboard/RevenueTrends';
+import DepartmentSales from '../../../components/dashboard/DepartmentSales';
+import RecentActivity from '../../../components/dashboard/RecentActivity';
 
 const AdminDashboard: React.FC = () => {
+    
     return (
         <div className="p-4 lg:p-6 max-w-[1600px] mx-auto space-y-6">
             {/* Overview Statistics Section */}

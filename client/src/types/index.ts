@@ -13,13 +13,11 @@ export interface Patient {
 export interface Doctor {
     id: string;
     name: string;
-    role: string;
     dept: string;
-    contact: string;
+    phone: string;
     email: string;
-    status: string;
     isActive: boolean;
-    image: string;
+    image?: string;
     specialty?: string;
     description?: string;
     rating?: number;
@@ -57,12 +55,8 @@ export interface InventoryItem {
 export interface Department {
     id: string;
     name: string;
-    head: string;
     totalStaff: number;
-    activeStaff: number;
-    location: string;
-    status: 'Active' | 'Inactive' | 'Under Maintenance';
-    established: string;
+    status: 'Active' | 'Inactive';
 }
 
 export interface NavItem {
@@ -106,7 +100,7 @@ export interface User {
     id: string;
     name?: string;
     email: string;
-    role: 'Admin' | 'Doctor' ;
+    role?: 'Admin' | 'Doctor';
     avatar?: string;
 }
 

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { Doctor } from '../types';
-import { DUMMY_DOCTORS } from '../data/dummyData';
+import { getDoctors } from '../api/doctor';
 
 interface DoctorStore {
     doctors: Doctor[];
@@ -14,17 +14,18 @@ interface DoctorStore {
 }
 
 export const useDoctorStore = create<DoctorStore>((set) => ({
-    doctors: DUMMY_DOCTORS,
+    doctors: [],
     isLoading: false,
     error: null,
     fetchDoctors: async () => {
         set({ isLoading: true });
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 500));
-            set({ doctors: DUMMY_DOCTORS, isLoading: false });
+            const data = await getDoctors()
+            set({ doctors: data });
         } catch (error) {
-            set({ error: 'Failed to fetch doctors', isLoading: false });
+            set({ error: 'Failed to fetch doctors' });
+        } finally{
+            set({isLoading:false})
         }
     },
     addDoctor: (doctor) => set((state) => ({

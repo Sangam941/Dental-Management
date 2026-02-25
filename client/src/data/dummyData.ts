@@ -220,82 +220,50 @@ export const DUMMY_DEPARTMENTS: Department[] = [
     {
         id: '#DEPT-001',
         name: 'Cardiology',
-        head: 'Dr. Rajesh Hamal',
         totalStaff: 18,
-        activeStaff: 16,
-        location: 'Block A, Floor 2',
-        status: 'Active',
-        established: '2015'
+        status: 'Active'
     },
     {
         id: '#DEPT-002',
         name: 'Ophthalmology',
-        head: 'Dr. Sanduk Ruit',
         totalStaff: 12,
-        activeStaff: 12,
-        location: 'Block B, Floor 1',
-        status: 'Active',
-        established: '2016'
+        status: 'Active'
     },
     {
         id: '#DEPT-003',
         name: 'Pediatrics',
-        head: 'Dr. Shristi Shrestha',
         totalStaff: 22,
-        activeStaff: 20,
-        location: 'Block C, Floor 3',
-        status: 'Active',
-        established: '2014'
+        status: 'Active'
     },
     {
         id: '#DEPT-004',
         name: 'Neurology',
-        head: 'Dr. Arjun Thapa',
         totalStaff: 15,
-        activeStaff: 13,
-        location: 'Block A, Floor 4',
-        status: 'Active',
-        established: '2018'
+        status: 'Active'
     },
     {
         id: '#DEPT-005',
         name: 'Radiology',
-        head: 'Dr. Priya Adhikari',
         totalStaff: 10,
-        activeStaff: 9,
-        location: 'Block D, Floor 1',
-        status: 'Active',
-        established: '2017'
+        status: 'Active'
     },
     {
         id: '#DEPT-006',
         name: 'Emergency',
-        head: 'Dr. Bikash Karki',
         totalStaff: 30,
-        activeStaff: 28,
-        location: 'Block E, Ground Floor',
-        status: 'Active',
-        established: '2013'
+        status: 'Active'
     },
     {
         id: '#DEPT-007',
         name: 'Orthopedics',
-        head: 'Dr. Suresh Basnet',
         totalStaff: 14,
-        activeStaff: 10,
-        location: 'Block B, Floor 3',
-        status: 'Under Maintenance',
-        established: '2019'
+        status: 'Inactive'
     },
     {
         id: '#DEPT-008',
         name: 'Dermatology',
-        head: 'Dr. Anita Tamang',
         totalStaff: 8,
-        activeStaff: 0,
-        location: 'Block F, Floor 2',
-        status: 'Inactive',
-        established: '2020'
+        status: 'Inactive'
     },
 ];
 

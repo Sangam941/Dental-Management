@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Search,
     Plus,
@@ -12,8 +12,8 @@ import {
     AlertTriangle
 } from 'lucide-react';
 
-import { DUMMY_DEPARTMENTS as initialDepartments } from '../data/dummyData';
-import type { Department } from '../types';
+import type { Department } from '../../../types';
+import { useDepartmentStore } from '../../../store/departmentStore';
 
 const getStatusBadge = (status: Department['status']) => {
     switch (status) {
@@ -21,8 +21,6 @@ const getStatusBadge = (status: Department['status']) => {
             return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
         case 'Inactive':
             return 'bg-slate-100 text-slate-500 border border-slate-200';
-        case 'Under Maintenance':
-            return 'bg-amber-50 text-amber-700 border border-amber-200';
         default:
             return 'bg-slate-100 text-slate-500 border border-slate-200';
     }
@@ -30,46 +28,45 @@ const getStatusBadge = (status: Department['status']) => {
 
 
 const Departments: React.FC = () => {
-    const [departments, setDepartments] = useState<Department[]>(initialDepartments);
+    const { departments, updateDepartment, deleteDepartment, addDepartment, fetchDepartments } = useDepartmentStore();
+
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
+
+    useEffect(() => {
+        fetchDepartments();
+    }, []);
 
     // Modal states
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedDept, setSelectedDept] = useState<Department | null>(null);
+    const [id, setId] = useState<string | ''>('')
 
     // Individual form states
-    const [deptName, setDeptName] = useState('');
-    const [deptHead, setDeptHead] = useState('');
+    const [deptName, setDeptName] = useState<string>('');
     const [deptTotalStaff, setDeptTotalStaff] = useState('');
-    const [deptActiveStaff, setDeptActiveStaff] = useState('');
-    const [deptLocation, setDeptLocation] = useState('');
     const [deptStatus, setDeptStatus] = useState<Department['status']>('Active');
-    const [deptEstablished, setDeptEstablished] = useState('');
     const [formError, setFormError] = useState('');
 
+
     // Stats
-    const totalDepts = departments.length;
-    const activeDepts = departments.filter(d => d.status === 'Active').length;
-    const totalStaff = departments.reduce((acc, d) => acc + d.totalStaff, 0);
-    const activeStaff = departments.reduce((acc, d) => acc + d.activeStaff, 0);
+    const totalDepts = departments?.length;
+    const activeDepts = totalDepts > 0 && departments?.filter(d => d.status === 'Active').length;
+    const totalStaff = totalDepts > 0 && departments?.reduce((acc, d) => acc + d.totalStaff, 0);
 
     const stats = [
         { title: 'Total Departments', count: String(totalDepts), icon: Building2, color: 'blue', trend: '+2%' },
         { title: 'Active Departments', count: String(activeDepts), icon: Activity, color: 'emerald', trend: '+5%' },
-        { title: 'Total Staff', count: String(totalStaff), icon: Users, color: 'purple', trend: '+8%' },
-        { title: 'Active Staff', count: String(activeStaff), icon: TrendingUp, color: 'amber', trend: '+3%' },
+        { title: 'Total Staff', count: String(totalStaff), icon: Users, color: 'purple', trend: '+8%' }
     ];
 
     // Filter
-    const filtered = departments.filter(d => {
+    const filtered = totalDepts >0 && departments?.filter(d => {
         const matchSearch =
-            d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            d.head.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            d.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            d.location.toLowerCase().includes(searchQuery.toLowerCase());
+            d.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            d.id?.toLowerCase().includes(searchQuery.toLowerCase());
         const matchStatus = statusFilter === 'All' || d.status === statusFilter;
         return matchSearch && matchStatus;
     });
@@ -77,12 +74,8 @@ const Departments: React.FC = () => {
     // --- RESET FORM ---
     const resetForm = () => {
         setDeptName('');
-        setDeptHead('');
         setDeptTotalStaff('');
-        setDeptActiveStaff('');
-        setDeptLocation('');
         setDeptStatus('Active');
-        setDeptEstablished('');
         setFormError('');
     };
 
@@ -92,22 +85,22 @@ const Departments: React.FC = () => {
         setIsAddModalOpen(true);
     };
 
-    const handleAdd = () => {
-        if (!deptName.trim() || !deptHead.trim() || !deptLocation.trim()) {
-            setFormError('Department Name, Head, and Location are required.');
+    const handleAdd = async () => {
+        if (!deptName.trim()) {
+            setFormError('Department Name is required.');
             return;
         }
-        const newDept: Department = {
-            id: `#DEPT-${String(departments.length + 1).padStart(3, '0')}`,
-            name: deptName.trim(),
-            head: deptHead.trim(),
-            totalStaff: parseInt(deptTotalStaff) || 0,
-            activeStaff: parseInt(deptActiveStaff) || 0,
-            location: deptLocation.trim(),
-            status: deptStatus,
-            established: deptEstablished || new Date().getFullYear().toString(),
-        };
-        setDepartments(prev => [...prev, newDept]);
+        // const newDept: Department = {
+        //     id: `#DEPT-${String(departments.length + 1).padStart(3, '0')}`,
+        //     name: deptName.trim(),
+        //     head: deptHead.trim(),
+        //     totalStaff: parseInt(deptTotalStaff) || 0,
+        //     location: deptLocation.trim(),
+        //     status: deptStatus,
+        // };
+
+        //add department api call
+        addDepartment(deptName);
         setIsAddModalOpen(false);
         resetForm();
     };
@@ -115,37 +108,21 @@ const Departments: React.FC = () => {
     // --- EDIT ---
     const openEditModal = (dept: Department) => {
         setSelectedDept(dept);
+        setId(dept.id);
         setDeptName(dept.name);
-        setDeptHead(dept.head);
-        setDeptTotalStaff(String(dept.totalStaff));
-        setDeptActiveStaff(String(dept.activeStaff));
-        setDeptLocation(dept.location);
         setDeptStatus(dept.status);
-        setDeptEstablished(dept.established);
         setFormError('');
+
         setIsEditModalOpen(true);
     };
 
     const handleEdit = () => {
-        if (!deptName.trim() || !deptHead.trim() || !deptLocation.trim()) {
-            setFormError('Department Name, Head, and Location are required.');
+        if (!deptName.trim()) {
+            setFormError('Department Name is required.');
             return;
         }
-        setDepartments(prev => prev.map(d =>
-            d.id === selectedDept?.id
-                ? {
-                    ...d,
-                    name: deptName.trim(),
-                    head: deptHead.trim(),
-                    totalStaff: parseInt(deptTotalStaff) || 0,
-                    activeStaff: parseInt(deptActiveStaff) || 0,
-                    location: deptLocation.trim(),
-                    status: deptStatus,
-                    established: deptEstablished,
-                }
-                : d
-        ));
         setIsEditModalOpen(false);
+        updateDepartment(id, deptName, deptStatus);
         setSelectedDept(null);
         resetForm();
     };
@@ -153,12 +130,13 @@ const Departments: React.FC = () => {
     // --- DELETE ---
     const openDeleteModal = (dept: Department) => {
         setSelectedDept(dept);
+        setId(dept.id);
         setIsDeleteModalOpen(true);
     };
 
     const handleDelete = () => {
-        setDepartments(prev => prev.filter(d => d.id !== selectedDept?.id));
         setIsDeleteModalOpen(false);
+        deleteDepartment(id);
         setSelectedDept(null);
     };
 
@@ -212,14 +190,13 @@ const Departments: React.FC = () => {
                         <option value="All">All Statuses</option>
                         <option value="Active">Active</option>
                         <option value="Inactive">Inactive</option>
-                        <option value="Under Maintenance">Under Maintenance</option>
                     </select>
                 </div>
                 <div className="relative w-full lg:w-80">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-admin-text-faint" size={16} />
                     <input
                         type="text"
-                        placeholder="Search by name, head, location..."
+                        placeholder="Search by name, ID..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
                         className="w-full pl-11 pr-4 py-2.5 bg-admin-surface border border-admin-border rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-admin-primary/20 transition-all"
@@ -234,17 +211,15 @@ const Departments: React.FC = () => {
                         <thead>
                             <tr className="bg-white border-b border-admin-border-subtle">
                                 <th className="px-8 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Department</th>
-                                <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Head</th>
-                                <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Location</th>
                                 <th className="px-6 py-5 text-center text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Staff</th>
                                 <th className="px-6 py-5 text-center text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Status</th>
                                 <th className="px-8 py-5 text-right text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-admin-border-subtle">
-                            {filtered.length === 0 ? (
+                            {departments.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-8 py-12 text-center">
+                                    <td colSpan={4} className="px-8 py-12 text-center">
                                         <div className="flex flex-col items-center gap-2 text-admin-text-faint">
                                             <Building2 size={32} className="opacity-30" />
                                             <p className="text-sm font-bold">No departments found</p>
@@ -253,7 +228,7 @@ const Departments: React.FC = () => {
                                     </td>
                                 </tr>
                             ) : (
-                                filtered.map((dept, idx) => (
+                                departments.length > 0 && departments.map((dept, idx) => (
                                     <tr key={idx} className="hover:bg-admin-surface/30 transition-colors">
                                         <td className="px-8 py-4">
                                             <div className="flex items-center gap-3">
@@ -262,25 +237,19 @@ const Departments: React.FC = () => {
                                                 </div>
                                                 <div>
                                                     <h4 className="text-sm font-bold text-admin-text">{dept.name}</h4>
-                                                    <p className="text-[10px] font-bold text-admin-text-faint">ID: {dept.id} · Est. {dept.established}</p>
+                                                    <p className="text-[10px] font-bold text-admin-text-faint">ID: {dept.id}</p>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <p className="text-xs font-bold text-admin-text">{dept.head}</p>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <p className="text-xs font-bold text-admin-text-muted">{dept.location}</p>
-                                        </td>
+
                                         <td className="px-6 py-4 text-center">
                                             <div className="flex flex-col items-center">
-                                                <p className="text-sm font-black text-admin-text">{dept.activeStaff}</p>
-                                                <p className="text-[10px] font-bold text-admin-text-faint">/ {dept.totalStaff} total</p>
+                                                <p className="text-sm font-black text-admin-text">{dept._count?.doctors || 0}</p>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-center">
                                             <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${getStatusBadge(dept.status)}`}>
-                                                {dept.status}
+                                                {dept.isActive}
                                             </span>
                                         </td>
                                         <td className="px-8 py-4 text-right">
@@ -349,11 +318,7 @@ const Departments: React.FC = () => {
                             )}
                             <DeptFormFields
                                 name={deptName} setName={setDeptName}
-                                head={deptHead} setHead={setDeptHead}
-                                location={deptLocation} setLocation={setDeptLocation}
                                 totalStaff={deptTotalStaff} setTotalStaff={setDeptTotalStaff}
-                                activeStaff={deptActiveStaff} setActiveStaff={setDeptActiveStaff}
-                                established={deptEstablished} setEstablished={setDeptEstablished}
                                 status={deptStatus} setStatus={setDeptStatus}
                             />
                         </div>
@@ -408,11 +373,7 @@ const Departments: React.FC = () => {
                             )}
                             <DeptFormFields
                                 name={deptName} setName={setDeptName}
-                                head={deptHead} setHead={setDeptHead}
-                                location={deptLocation} setLocation={setDeptLocation}
                                 totalStaff={deptTotalStaff} setTotalStaff={setDeptTotalStaff}
-                                activeStaff={deptActiveStaff} setActiveStaff={setDeptActiveStaff}
-                                established={deptEstablished} setEstablished={setDeptEstablished}
                                 status={deptStatus} setStatus={setDeptStatus}
                             />
                         </div>
@@ -473,60 +434,27 @@ const Departments: React.FC = () => {
 interface FormFieldsProps {
     name: string;
     setName: (val: string) => void;
-    head: string;
-    setHead: (val: string) => void;
-    location: string;
-    setLocation: (val: string) => void;
     totalStaff: string;
     setTotalStaff: (val: string) => void;
-    activeStaff: string;
-    setActiveStaff: (val: string) => void;
-    established: string;
-    setEstablished: (val: string) => void;
     status: Department['status'];
     setStatus: (val: Department['status']) => void;
 }
 
 const DeptFormFields: React.FC<FormFieldsProps> = ({
-    name, setName, head, setHead, location, setLocation,
-    totalStaff, setTotalStaff, activeStaff, setActiveStaff,
-    established, setEstablished, status, setStatus
+    name, setName,
+    totalStaff, setTotalStaff, status, setStatus
 }) => (
     <>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-admin-text-muted uppercase tracking-wider">
-                    Department Name <span className="text-rose-500">*</span>
-                </label>
-                <input
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    placeholder="e.g. Cardiology"
-                    className="w-full px-4 py-2.5 border border-admin-border rounded-xl text-admin-text text-sm font-medium focus:ring-2 focus:ring-admin-primary/20 focus:border-admin-primary focus:outline-none transition-all placeholder:text-admin-text-faint bg-white"
-                />
-            </div>
-            <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-admin-text-muted uppercase tracking-wider">
-                    Department Head <span className="text-rose-500">*</span>
-                </label>
-                <input
-                    value={head}
-                    onChange={e => setHead(e.target.value)}
-                    placeholder="e.g. Dr. Rajesh Hamal"
-                    className="w-full px-4 py-2.5 border border-admin-border rounded-xl text-admin-text text-sm font-medium focus:ring-2 focus:ring-admin-primary/20 focus:border-admin-primary focus:outline-none transition-all placeholder:text-admin-text-faint bg-white"
-                />
-            </div>
-        </div>
-
         <div className="space-y-1.5">
             <label className="text-[10px] font-black text-admin-text-muted uppercase tracking-wider">
-                Location <span className="text-rose-500">*</span>
+                Department Name <span className="text-rose-500">*</span>
             </label>
             <input
-                value={location}
-                onChange={e => setLocation(e.target.value)}
-                placeholder="e.g. Block A, Floor 2"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder="e.g. Cardiology"
                 className="w-full px-4 py-2.5 border border-admin-border rounded-xl text-admin-text text-sm font-medium focus:ring-2 focus:ring-admin-primary/20 focus:border-admin-primary focus:outline-none transition-all placeholder:text-admin-text-faint bg-white"
+                required
             />
         </div>
 
@@ -539,29 +467,6 @@ const DeptFormFields: React.FC<FormFieldsProps> = ({
                     value={totalStaff}
                     onChange={e => setTotalStaff(e.target.value)}
                     placeholder="0"
-                    className="w-full px-4 py-2.5 border border-admin-border rounded-xl text-admin-text text-sm font-medium focus:ring-2 focus:ring-admin-primary/20 focus:border-admin-primary focus:outline-none transition-all placeholder:text-admin-text-faint bg-white"
-                />
-            </div>
-            <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-admin-text-muted uppercase tracking-wider">Active Staff</label>
-                <input
-                    type="number"
-                    min="0"
-                    value={activeStaff}
-                    onChange={e => setActiveStaff(e.target.value)}
-                    placeholder="0"
-                    className="w-full px-4 py-2.5 border border-admin-border rounded-xl text-admin-text text-sm font-medium focus:ring-2 focus:ring-admin-primary/20 focus:border-admin-primary focus:outline-none transition-all placeholder:text-admin-text-faint bg-white"
-                />
-            </div>
-            <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-admin-text-muted uppercase tracking-wider">Est. Year</label>
-                <input
-                    type="number"
-                    min="1900"
-                    max="2099"
-                    value={established}
-                    onChange={e => setEstablished(e.target.value)}
-                    placeholder="2020"
                     className="w-full px-4 py-2.5 border border-admin-border rounded-xl text-admin-text text-sm font-medium focus:ring-2 focus:ring-admin-primary/20 focus:border-admin-primary focus:outline-none transition-all placeholder:text-admin-text-faint bg-white"
                 />
             </div>
@@ -583,3 +488,4 @@ const DeptFormFields: React.FC<FormFieldsProps> = ({
 );
 
 export default Departments;
+

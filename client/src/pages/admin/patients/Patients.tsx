@@ -23,7 +23,7 @@ const stats = [
 const genders = ['All Genders', 'Male', 'Female', 'Other'];
 const ageRanges = ['All Ages', '0-18', '19-40', '41-60', '60+'];
 
-import { DUMMY_PATIENTS as initialPatients } from '../data/dummyData';
+import { DUMMY_PATIENTS as initialPatients } from '../../../data/dummyData';
 
 import { useNavigate } from 'react-router-dom';
 

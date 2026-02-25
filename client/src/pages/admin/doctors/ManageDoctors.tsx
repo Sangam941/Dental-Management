@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
     Search,
@@ -13,7 +13,9 @@ import {
     ChevronDown
 } from 'lucide-react';
 
-import { DUMMY_DOCTORS as initialDoctors, DEPARTMENTS_LIST } from '../data/dummyData';
+import { DUMMY_DOCTORS as initialDoctors, DEPARTMENTS_LIST } from '../../../data/dummyData';
+import { useDoctorStore } from '../../../store/doctorStore';
+
 
 const departments = ['All Departments', ...DEPARTMENTS_LIST];
 
@@ -28,6 +30,9 @@ const getStatusColor = (status: string) => {
 };
 
 const ManageDoctors: React.FC = () => {
+
+    // zustand store 
+    const { doctors, isLoading, fetchDoctors } = useDoctorStore();
     const [selectedDept, setSelectedDept] = useState('All Departments');
     const [searchQuery, setSearchQuery] = useState('');
     const [doctorList, setDoctorList] = useState(initialDoctors);
@@ -38,27 +43,30 @@ const ManageDoctors: React.FC = () => {
         ));
     };
 
-    const filteredDoctors = doctorList.filter(doc => {
+    const filteredDoctors = doctors?.filter(doc => {
         const matchesDept = selectedDept === 'All Departments' || doc.dept === selectedDept;
         const matchesSearch =
-            doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            doc.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            doc.email.toLowerCase().includes(searchQuery.toLowerCase());
+            doc.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            doc.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            doc.email?.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesDept && matchesSearch;
     });
 
     // Dynamic stats derived from data
-    const totalDoctors = doctorList.length;
-    const activeDoctors = doctorList.filter(d => d.isActive).length;
-    const onDutyDoctors = doctorList.filter(d => d.status === 'On Duty').length;
-    const uniqueDepts = new Set(doctorList.map(d => d.dept)).size;
+    const totalDoctors = doctors?.length;
+    const activeDoctors = doctors?.filter(d => d.isActive).length;
+    const uniqueDepts = new Set(doctors?.map(d => d.dept)).size;
 
     const stats = [
         { title: 'Total Doctors', count: String(totalDoctors), icon: Stethoscope, trend: '+5%', color: 'blue' },
         { title: 'Active Doctors', count: String(activeDoctors), icon: UserCheck, trend: '+3%', color: 'emerald' },
-        { title: 'On Duty Now', count: String(onDutyDoctors), icon: Activity, trend: '+8%', color: 'purple' },
         { title: 'Departments', count: String(uniqueDepts), icon: Activity, trend: '+2%', color: 'amber' }
     ];
+
+
+    useEffect(() => {
+        fetchDoctors();
+    }, []);
 
     return (
         <div className="p-6 lg:p-10 max-w-[1600px] mx-auto space-y-8 bg-admin-bg min-h-screen">
@@ -131,8 +139,8 @@ const ManageDoctors: React.FC = () => {
                         <thead>
                             <tr className="bg-white border-b border-admin-border-subtle">
                                 <th className="px-8 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Doctor</th>
+                                <th className="px-8 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Department</th>
                                 <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Contact</th>
-                                <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Shift Status</th>
                                 <th className="px-6 py-5 text-center text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Active</th>
                                 <th className="px-8 py-5 text-right text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Actions</th>
                             </tr>
@@ -154,39 +162,32 @@ const ManageDoctors: React.FC = () => {
                                         <td className="px-8 py-4">
                                             <div className="flex items-center gap-3">
                                                 <img
-                                                    src={doctor.image}
+                                                    src={'/images/admin/default-profile.webp'}
                                                     alt={doctor.name}
-                                                    className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm"
+                                                    className="w-10 cursor-pointer h-10 rounded-full object-cover ring-2 ring-white shadow-sm"
                                                 />
                                                 <div>
-                                                    <h4 className="text-sm font-bold text-admin-text">{doctor.name}</h4>
+                                                    <h4 className="text-sm font-bold text-admin-text">{doctor.fullName}</h4>
                                                     <p className="text-[10px] font-bold text-admin-text-faint">ID: {doctor.id}</p>
                                                 </div>
                                             </div>
                                         </td>
 
                                         <td className="px-6 py-4">
-                                            <p className="text-xs font-bold text-admin-text-muted">{doctor.dept}</p>
+                                            <p className="text-xs font-bold text-admin-text-muted">{doctor.department?.name}</p>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="space-y-0.5">
-                                                <p className="text-xs font-bold text-admin-text">{doctor.contact}</p>
+                                                <p className="text-xs font-bold text-admin-text">{doctor.phoneNumber}</p>
                                                 <p className="text-[10px] font-bold text-admin-text-faint">{doctor.email}</p>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2">
-                                                <div className={`w-1.5 h-1.5 rounded-full ${getStatusColor(doctor.status)}`} />
-                                                <span className="text-xs font-bold text-admin-text-muted">{doctor.status}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex justify-center">
                                                 <div
                                                     onClick={() => toggleActiveStatus(doctor.id)}
-                                                    className={`w-10 h-5 rounded-full p-1 cursor-pointer transition-colors ${doctor.isActive ? 'bg-admin-primary' : 'bg-slate-200'}`}
-                                                >
-                                                    <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${doctor.isActive ? 'translate-x-5' : 'translate-x-0'}`} />
+                                                     >
+                                                    <div className={`py-1 px-2 rounded-full cursor-pointer transition-colors ${doctor.isActive ? 'bg-green-200 text-green-900 border border-green-500' : 'bg-slate-200 border border-slate-500'} text-xs font-bold text-admin-text`}>{doctor.isActive ? 'Active' : 'Inactive'}</div>
                                                 </div>
                                             </div>
                                         </td>

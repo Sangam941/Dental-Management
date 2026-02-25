@@ -127,7 +127,7 @@ const AddDoctor: React.FC = () => {
                                     type="text"
                                     value={phone}
                                     onChange={e => setPhone(e.target.value)}
-                                    placeholder="+91 98765 43210"
+                                    placeholder="+977 98765 43210"
                                     className="admin-input pl-12"
                                     required
                                 />
