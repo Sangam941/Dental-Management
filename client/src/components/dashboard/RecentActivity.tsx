@@ -1,44 +1,7 @@
 import React from 'react';
 import { ChevronRight, ArrowUpRight } from 'lucide-react';
 
-const activities = [
-    {
-        id: 'OPD-2023-1024',
-        patient: 'Amit Sharma',
-        avatar: 'AS',
-        dept: 'General',
-        doctor: 'Dr. Verma',
-        amount: 'Rs. 500',
-        status: 'Completed'
-    },
-    {
-        id: 'OPD-2023-1025',
-        patient: 'Priya Singh',
-        avatar: 'PS',
-        dept: 'Endocrinology',
-        doctor: 'Dr. Mehra',
-        amount: 'Rs. 1,250',
-        status: 'Completed'
-    },
-    {
-        id: 'OPD-2023-1026',
-        patient: 'Rakesh Gupta',
-        avatar: 'RG',
-        dept: 'Radiology',
-        doctor: 'Dr. Khan',
-        amount: 'Rs. 3,500',
-        status: 'Pending'
-    },
-    {
-        id: 'OPD-2023-1027',
-        patient: 'Suman Devi',
-        avatar: 'SD',
-        dept: 'Medicine',
-        doctor: 'Dr. Verma',
-        amount: 'Rs. 150',
-        status: 'Completed'
-    }
-];
+import { DUMMY_ACTIVITIES as activities } from '../../data/dummyData';
 
 const RecentActivity: React.FC = () => {
     return (

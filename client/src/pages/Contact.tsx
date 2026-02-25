@@ -2,19 +2,14 @@ import { useState } from 'react';
 import { Send, Phone, Mail, MapPin, Clock, ArrowRight, Smile } from 'lucide-react';
 
 const Contact = () => {
-    const [formData, setFormData] = useState({
-        full_name: '',
-        email: '',
-        department: '',
-        subject: '',
-        message: ''
-    });
-    const [status, setStatus] = useState({ type: '', message: '' });
+    // Individual form states
+    const [fullName, setFullName] = useState('');
+    const [email, setEmail] = useState('');
+    const [department, setDepartment] = useState('');
+    const [subject, setSubject] = useState('');
+    const [message, setMessage] = useState('');
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { id, value } = e.target;
-        setFormData(prev => ({ ...prev, [id]: value }));
-    };
+    const [status, setStatus] = useState({ type: '', message: '' });
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -22,15 +17,21 @@ const Contact = () => {
 
         // Simulate API call
         setTimeout(() => {
-            console.log('Form Submitted:', formData);
-            setStatus({ type: 'success', message: 'Message sent successfully! We will get back to you soon.' });
-            setFormData({
-                full_name: '',
-                email: '',
-                department: '',
-                subject: '',
-                message: ''
+            console.log('Form Submitted:', {
+                fullName,
+                email,
+                department,
+                subject,
+                message
             });
+            setStatus({ type: 'success', message: 'Message sent successfully! We will get back to you soon.' });
+
+            // Clear form
+            setFullName('');
+            setEmail('');
+            setDepartment('');
+            setSubject('');
+            setMessage('');
         }, 1500);
     };
 
@@ -71,8 +72,8 @@ const Contact = () => {
                                         id="full_name"
                                         placeholder="John Doe"
                                         type="text"
-                                        value={formData.full_name}
-                                        onChange={handleChange}
+                                        value={fullName}
+                                        onChange={(e) => setFullName(e.target.value)}
                                         required
                                     />
                                 </div>
@@ -83,8 +84,8 @@ const Contact = () => {
                                         id="email"
                                         placeholder="john@example.com"
                                         type="email"
-                                        value={formData.email}
-                                        onChange={handleChange}
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
                                         required
                                     />
                                 </div>
@@ -94,8 +95,8 @@ const Contact = () => {
                                 <select
                                     className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 bg-white outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all cursor-pointer"
                                     id="department"
-                                    value={formData.department}
-                                    onChange={handleChange}
+                                    value={department}
+                                    onChange={(e) => setDepartment(e.target.value)}
                                     required
                                 >
                                     <option value="">General Inquiry</option>
@@ -113,8 +114,8 @@ const Contact = () => {
                                     id="subject"
                                     placeholder="How can we help you?"
                                     type="text"
-                                    value={formData.subject}
-                                    onChange={handleChange}
+                                    value={subject}
+                                    onChange={(e) => setSubject(e.target.value)}
                                     required
                                 />
                             </div>
@@ -125,8 +126,8 @@ const Contact = () => {
                                     id="message"
                                     placeholder="Please describe your inquiry in detail..."
                                     rows={5}
-                                    value={formData.message}
-                                    onChange={handleChange}
+                                    value={message}
+                                    onChange={(e) => setMessage(e.target.value)}
                                     required
                                 ></textarea>
                             </div>

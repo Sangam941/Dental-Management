@@ -9,23 +9,10 @@ import {
     ResponsiveContainer,
 } from 'recharts';
 
-/* ─── Data ──────────────────────────────────────────── */
-const weeklyData = [
-    { day: 'Mon', revenue: 12400, expenses: 3200 },
-    { day: 'Tue', revenue: 18200, expenses: 4100 },
-    { day: 'Wed', revenue: 15800, expenses: 3600 },
-    { day: 'Thu', revenue: 24500, expenses: 5200 },
-    { day: 'Fri', revenue: 21000, expenses: 4800 },
-    { day: 'Sat', revenue: 28400, expenses: 6100 },
-    { day: 'Sun', revenue: 19700, expenses: 4400 },
-];
-
-const monthlyData = [
-    { day: 'Week 1', revenue: 84200, expenses: 22000 },
-    { day: 'Week 2', revenue: 96500, expenses: 25400 },
-    { day: 'Week 3', revenue: 110300, expenses: 28600 },
-    { day: 'Week 4', revenue: 128700, expenses: 31200 },
-];
+import {
+    DUMMY_WEEKLY_REVENUE as weeklyData,
+    DUMMY_MONTHLY_REVENUE as monthlyData
+} from '../../data/dummyData';
 
 /* ─── Custom Tooltip ─────────────────────────────────── */
 interface TooltipProps {
@@ -80,8 +67,8 @@ const RevenueTrends: React.FC = () => {
                             key={p}
                             onClick={() => setPeriod(p)}
                             className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${period === p
-                                    ? 'bg-white text-admin-primary shadow-sm border border-admin-border'
-                                    : 'text-admin-text-muted hover:text-admin-text'
+                                ? 'bg-white text-admin-primary shadow-sm border border-admin-border'
+                                : 'text-admin-text-muted hover:text-admin-text'
                                 }`}
                         >
                             {p === '7days' ? '7 Days' : 'Monthly'}
@@ -129,7 +116,7 @@ const RevenueTrends: React.FC = () => {
                         dataKey="day"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                        tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8', letterSpacing: '0.05em' }}
                         dy={8}
                     />
 

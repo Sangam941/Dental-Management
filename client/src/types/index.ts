@@ -1,11 +1,68 @@
-export interface Doctor {
+export interface Patient {
+    id: string;
     name: string;
-    specialty: string;
-    description: string;
-    imageUrl: string;
-    rating: number;
-    experience: number;
-    languages: string[];
+    email: string;
+    phone: string;
+    gender: string;
+    age: number;
+    bloodGroup: string;
+    lastVisit: string;
+    image: string;
+}
+
+export interface Doctor {
+    id: string;
+    name: string;
+    role: string;
+    dept: string;
+    contact: string;
+    email: string;
+    status: string;
+    isActive: boolean;
+    image: string;
+    specialty?: string;
+    description?: string;
+    rating?: number;
+    experience?: number;
+    languages?: string[];
+}
+
+export interface Appointment {
+    id: string;
+    patient: string;
+    age: number;
+    gender: string;
+    phone: string;
+    doctor: string;
+    department: string;
+    date: string;
+    time: string;
+    type: string;
+    status: string;
+    priority: string;
+}
+
+export interface InventoryItem {
+    id: number;
+    name: string;
+    type: string;
+    category: string;
+    subCategory: string;
+    code: string;
+    price: string;
+    status: string;
+    statusColor: string;
+}
+
+export interface Department {
+    id: string;
+    name: string;
+    head: string;
+    totalStaff: number;
+    activeStaff: number;
+    location: string;
+    status: 'Active' | 'Inactive' | 'Under Maintenance';
+    established: string;
 }
 
 export interface NavItem {
@@ -43,4 +100,18 @@ export interface OPDStatsData {
     onlineTrend: number;
     totalExpenses: number;
     expenseTrend: number;
+}
+
+export interface User {
+    id: string;
+    name?: string;
+    email: string;
+    role: 'Admin' | 'Doctor' ;
+    avatar?: string;
+}
+
+export interface AuthState {
+    user: User | null;
+    token: string | null;
+    isAuthenticated: boolean;
 }

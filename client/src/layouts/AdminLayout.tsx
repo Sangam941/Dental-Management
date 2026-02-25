@@ -9,7 +9,9 @@ import {
     Hospital,
     LogOut,
     Menu,
-    X
+    X,
+    Archive,
+    Building2
 } from 'lucide-react';
 
 const AdminLayout: React.FC = () => {
@@ -27,14 +29,24 @@ const AdminLayout: React.FC = () => {
             path: '/admin/manage-doctors'
         },
         {
-            name: 'Daily OPD Management',
+            name: 'Appointments',
             icon: <ClipboardList size={20} />,
-            path: '/admin/opd-management'
+            path: '/admin/appointment'
         },
         {
             name: 'Patient Records',
             icon: <Users size={20} />,
             path: '/admin/patients'
+        },
+        {
+            name: 'Inventory',
+            icon: <Archive size={20} />,
+            path: '/admin/inventory'
+        },
+        {
+            name: 'Departments',
+            icon: <Building2 size={20} />,
+            path: '/admin/departments'
         },
         {
             name: 'Settings',
@@ -107,7 +119,7 @@ const AdminLayout: React.FC = () => {
                     {/* User Profile Summary */}
                     <div className="p-4 rounded-2xl flex items-center gap-3 w-full">
                         <img
-                            src="https://images.unsplash.com/photo-1537368910025-700350fe46c7?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80"
+                            src="/images/admin/default-profile.webp"
                             alt="User"
                             className="w-10 h-10 rounded-xl object-cover ring-2 ring-white"
                         />

@@ -1,12 +1,18 @@
 import React from 'react';
 import { MoreHorizontal, Heart, Brain, User, MoreVertical } from 'lucide-react';
 
-const departments = [
-    { name: 'Cardiology', patients: 245, percentage: 35, color: 'bg-blue-500', icon: <Heart size={16} className="text-blue-500" />, iconBg: 'bg-blue-50' },
-    { name: 'Neurology', patients: 180, percentage: 28, color: 'bg-emerald-500', icon: <Brain size={16} className="text-emerald-500" />, iconBg: 'bg-emerald-50' },
-    { name: 'General Med', patients: 310, percentage: 22, color: 'bg-amber-500', icon: <User size={16} className="text-amber-500" />, iconBg: 'bg-amber-50' },
-    { name: 'Others', patients: 105, percentage: 15, color: 'bg-slate-400', icon: <MoreHorizontal size={16} className="text-slate-500" />, iconBg: 'bg-slate-100' },
-];
+import { DUMMY_DEPT_SALES } from '../../data/dummyData';
+
+const departments = DUMMY_DEPT_SALES.map(dept => ({
+    ...dept,
+    icon: dept.iconType === 'heart' ? <Heart size={16} className="text-blue-500" /> :
+        dept.iconType === 'brain' ? <Brain size={16} className="text-emerald-500" /> :
+            dept.iconType === 'user' ? <User size={16} className="text-amber-500" /> :
+                <MoreHorizontal size={16} className="text-slate-500" />,
+    iconBg: dept.iconType === 'heart' ? 'bg-blue-50' :
+        dept.iconType === 'brain' ? 'bg-emerald-50' :
+            dept.iconType === 'user' ? 'bg-amber-50' : 'bg-slate-100'
+}));
 
 const DepartmentSales: React.FC = () => {
     return (

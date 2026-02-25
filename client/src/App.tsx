@@ -11,9 +11,21 @@ import DailyOPDManagement from './pages/DailyOPDManagement';
 import DailyOPDEntry from './pages/DailyOPDEntry';
 import AddDoctor from './pages/AddDoctor';
 import ManageDoctors from './pages/ManageDoctors';
+import Patients from './pages/Patients';
+import AddPatient from './pages/AddPatient';
 import AdminDashboard from './pages/AdminDashboard';
+import Inventory from './pages/Inventory';
+import AddItem from './pages/AddItem';
+import Appointments from './pages/Appointments';
+import AddAppointment from './pages/AddAppointment';
+import Departments from './pages/Departments';
+import Login from './pages/Login';
 
 const router = createBrowserRouter([
+  {
+    path: "/login",
+    element: <Login />,
+  },
   {
     path: "/",
     element: <Layout />,
@@ -32,10 +44,15 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <AdminDashboard /> },
       { path: "dashboard", element: <AdminDashboard /> },
-      { path: "opd-management", element: <DailyOPDManagement /> },
-      { path: "opd-management/opd-entry", element: <DailyOPDEntry /> },
+      { path: "appointment", element: <Appointments /> },
+      { path: "appointment/add-appointment", element: <AddAppointment /> },
       { path: "manage-doctors/add-doctor", element: <AddDoctor /> },
       { path: "manage-doctors", element: <ManageDoctors /> },
+      { path: "patients", element: <Patients /> },
+      { path: "patients/new-patient", element: <AddPatient /> },
+      { path: "inventory", element: <Inventory /> },
+      { path: "inventory/add-item", element: <AddItem /> },
+      { path: "departments", element: <Departments /> },
       { path: "doctors", element: <Doctors /> }, // Public list
     ],
   },

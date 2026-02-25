@@ -1,21 +1,62 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const OPDEntryForm: React.FC = () => {
-    const [formData] = useState({
-        sn: 'OPD-2023-1024',
-        regNo: '',
-        patientName: '',
-        age: '',
-        address: '',
-        phone: '',
-        doctor: '',
-        treatment: '',
-        totalAmount: '0.00',
-        paymentOption: 'Cash',
-        paidAmount: '0.00',
-        dueBalance: '0.00',
-        expense: '0.00'
-    });
+    // Individual form states
+    const [sn] = useState('OPD-2023-1024');
+    const [regNo, setRegNo] = useState('');
+    const [patientName, setPatientName] = useState('');
+    const [age, setAge] = useState('');
+    const [address, setAddress] = useState('');
+    const [phone, setPhone] = useState('');
+    const [doctor, setDoctor] = useState('');
+    const [treatment, setTreatment] = useState('');
+    const [totalAmount, setTotalAmount] = useState('0.00');
+    const [paymentOption, setPaymentOption] = useState('Cash');
+    const [paidAmount, setPaidAmount] = useState('0.00');
+    const [dueBalance, setDueBalance] = useState('0.00');
+    const [expense, setExpense] = useState('0.00');
+
+    // Automatically calculate due balance
+    useEffect(() => {
+        const total = parseFloat(totalAmount) || 0;
+        const paid = parseFloat(paidAmount) || 0;
+        setDueBalance((total - paid).toFixed(2));
+    }, [totalAmount, paidAmount]);
+
+    const clearForm = () => {
+        setRegNo('');
+        setPatientName('');
+        setAge('');
+        setAddress('');
+        setPhone('');
+        setDoctor('');
+        setTreatment('');
+        setTotalAmount('0.00');
+        setPaymentOption('Cash');
+        setPaidAmount('0.00');
+        setDueBalance('0.00');
+        setExpense('0.00');
+    };
+
+    const handleSave = () => {
+        const entryData = {
+            sn,
+            regNo,
+            patientName,
+            age,
+            address,
+            phone,
+            doctor,
+            treatment,
+            totalAmount,
+            paymentOption,
+            paidAmount,
+            dueBalance,
+            expense
+        };
+        console.log('Daily OPD Entry Saved:', entryData);
+        // Add submission logic here
+    };
 
     return (
         <div className="space-y-6">
@@ -42,31 +83,58 @@ const OPDEntryForm: React.FC = () => {
                     <div className="space-y-1.5">
                         <label className="admin-label">SN (Auto-Gen)</label>
                         <input
-                            name="sn"
-                            value={formData.sn}
+                            value={sn}
                             disabled
                             className="admin-input opacity-60 cursor-not-allowed"
                         />
                     </div>
                     <div className="space-y-1.5">
                         <label className="admin-label">Reg. No <span className="text-admin-danger">*</span></label>
-                        <input name="regNo" placeholder="Enter Registration No." className="admin-input" />
+                        <input
+                            value={regNo}
+                            onChange={(e) => setRegNo(e.target.value)}
+                            placeholder="Enter Registration No."
+                            className="admin-input"
+                            required
+                        />
                     </div>
                     <div className="space-y-1.5">
                         <label className="admin-label">Patient Name <span className="text-admin-danger">*</span></label>
-                        <input name="patientName" placeholder="Enter full patient name" className="admin-input" />
+                        <input
+                            value={patientName}
+                            onChange={(e) => setPatientName(e.target.value)}
+                            placeholder="Enter full patient name"
+                            className="admin-input"
+                            required
+                        />
                     </div>
                     <div className="space-y-1.5">
                         <label className="admin-label">Age <span className="text-admin-danger">*</span></label>
-                        <input name="age" placeholder="e.g. 28" className="admin-input" />
+                        <input
+                            value={age}
+                            onChange={(e) => setAge(e.target.value)}
+                            placeholder="e.g. 28"
+                            className="admin-input"
+                            required
+                        />
                     </div>
                     <div className="space-y-1.5 lg:col-span-1">
                         <label className="admin-label">Address</label>
-                        <input name="address" placeholder="House No, Street, City" className="admin-input" />
+                        <input
+                            value={address}
+                            onChange={(e) => setAddress(e.target.value)}
+                            placeholder="House No, Street, City"
+                            className="admin-input"
+                        />
                     </div>
                     <div className="space-y-1.5">
                         <label className="admin-label">Phone Number</label>
-                        <input name="phone" placeholder="Enter phone number" className="admin-input" />
+                        <input
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="Enter phone number"
+                            className="admin-input"
+                        />
                     </div>
                 </div>
             </div>
@@ -82,7 +150,12 @@ const OPDEntryForm: React.FC = () => {
                 <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1.5">
                         <label className="admin-label">Doctor / Consultant <span className="text-admin-danger">*</span></label>
-                        <select name="doctor" className="admin-input cursor-pointer">
+                        <select
+                            value={doctor}
+                            onChange={(e) => setDoctor(e.target.value)}
+                            className="admin-input cursor-pointer"
+                            required
+                        >
                             <option value="">Select attending doctor</option>
                             <option value="Dr. Verma (Med)">Dr. Verma (Med)</option>
                             <option value="Dr. Mehra (Endo)">Dr. Mehra (Endo)</option>
@@ -90,7 +163,12 @@ const OPDEntryForm: React.FC = () => {
                     </div>
                     <div className="space-y-1.5">
                         <label className="admin-label">Treatment / Diagnosis</label>
-                        <input name="treatment" placeholder="Brief description of treatment" className="admin-input" />
+                        <input
+                            value={treatment}
+                            onChange={(e) => setTreatment(e.target.value)}
+                            placeholder="Brief description of treatment"
+                            className="admin-input"
+                        />
                     </div>
                 </div>
             </div>
@@ -106,11 +184,20 @@ const OPDEntryForm: React.FC = () => {
                 <div className="p-6 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
                     <div className="space-y-1.5">
                         <label className="admin-label">Total Amount (Rs.)</label>
-                        <input name="totalAmount" defaultValue="0.00" className="admin-input" />
+                        <input
+                            type="number"
+                            value={totalAmount}
+                            onChange={(e) => setTotalAmount(e.target.value)}
+                            className="admin-input"
+                        />
                     </div>
                     <div className="space-y-1.5">
                         <label className="admin-label">Payment Option</label>
-                        <select name="paymentOption" className="admin-input cursor-pointer">
+                        <select
+                            value={paymentOption}
+                            onChange={(e) => setPaymentOption(e.target.value)}
+                            className="admin-input cursor-pointer"
+                        >
                             <option>Cash</option>
                             <option>Online</option>
                             <option>Credit</option>
@@ -118,24 +205,44 @@ const OPDEntryForm: React.FC = () => {
                     </div>
                     <div className="space-y-1.5">
                         <label className="admin-label">Paid Amount (Rs.)</label>
-                        <input name="paidAmount" defaultValue="0.00" className="admin-input" />
+                        <input
+                            type="number"
+                            value={paidAmount}
+                            onChange={(e) => setPaidAmount(e.target.value)}
+                            className="admin-input"
+                        />
                     </div>
                     <div className="space-y-1.5">
                         <label className="admin-label">Due Balance (Rs.)</label>
-                        <input name="dueBalance" value="0.00" readOnly className="admin-input bg-admin-surface font-bold cursor-not-allowed" />
+                        <input
+                            value={dueBalance}
+                            readOnly
+                            className="admin-input bg-admin-surface font-bold cursor-not-allowed"
+                        />
                     </div>
                     <div className="space-y-1.5">
                         <label className="admin-label">Expense (Rs.)</label>
-                        <input name="expense" defaultValue="0.00" className="admin-input" />
+                        <input
+                            type="number"
+                            value={expense}
+                            onChange={(e) => setExpense(e.target.value)}
+                            className="admin-input"
+                        />
                     </div>
                 </div>
             </div>
 
             <div className="flex justify-end gap-4 pb-8">
-                <button className="px-8 py-2.5 admin-button-secondary text-sm">
+                <button
+                    onClick={clearForm}
+                    className="px-8 py-2.5 admin-button-secondary text-sm font-bold border border-admin-border rounded-xl"
+                >
                     Clear Form
                 </button>
-                <button className="px-8 py-2.5 admin-button-primary flex items-center gap-2">
+                <button
+                    onClick={handleSave}
+                    className="px-8 py-2.5 admin-button-primary flex items-center gap-2 text-sm font-bold"
+                >
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
                     </svg>

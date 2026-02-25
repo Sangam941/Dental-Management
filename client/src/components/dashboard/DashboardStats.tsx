@@ -71,48 +71,47 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, trend, subtext, icon,
     );
 };
 
+import { DUMMY_DASHBOARD_STATS } from '../../data/dummyData';
+
 const DashboardStats: React.FC = () => {
+    const getIcon = (title: string) => {
+        switch (title) {
+            case "Total Doctors": return <PlusSquare size={22} />;
+            case "Total Revenue": return <Banknote size={22} />;
+            case "Total Patients (OPD)": return <Users size={22} />;
+            case "Active Doctors": return <Stethoscope size={22} />;
+            default: return <PlusSquare size={22} />;
+        }
+    };
+
+    const getColors = (color: string) => {
+        switch (color) {
+            case "blue": return { bg: "bg-blue-50", text: "text-blue-500" };
+            case "emerald": return { bg: "bg-emerald-50", text: "text-emerald-500" };
+            case "purple": return { bg: "bg-purple-50", text: "text-purple-500" };
+            case "amber": return { bg: "bg-amber-50", text: "text-amber-500" };
+            default: return { bg: "bg-blue-50", text: "text-blue-500" };
+        }
+    };
+
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatCard
-                title="Total Doctors"
-                value="142"
-                trend={{ value: "+5.2%", isPositive: true }}
-                subtext="vs last month"
-                icon={<PlusSquare size={22} />}
-                iconBg="bg-blue-50"
-                iconColor="text-blue-500"
-            />
-            <StatCard
-                title="Total Revenue"
-                value="Rs. 24,58,400"
-                trend={{ value: "+12.5%", isPositive: true }}
-                subtext="vs last month"
-                icon={<Banknote size={22} />}
-                iconBg="bg-emerald-50"
-                iconColor="text-emerald-500"
-            />
-            <StatCard
-                title="Total Patients (OPD)"
-                value="3,845"
-                trend={{ value: "-2.4%", isPositive: false }}
-                subtext="vs last month"
-                icon={<Users size={22} />}
-                iconBg="bg-purple-50"
-                iconColor="text-purple-500"
-            />
-            <StatCard
-                title="Active Doctors"
-                value="86"
-                icon={<Stethoscope size={22} />}
-                iconBg="bg-amber-50"
-                iconColor="text-amber-500"
-                status={{
-                    label: "High Avail.",
-                    sublabel: "Currently On-Duty",
-                    type: 'success'
-                }}
-            />
+            {DUMMY_DASHBOARD_STATS.map((stat, idx) => {
+                const colors = getColors(stat.color || 'blue');
+                return (
+                    <StatCard
+                        key={idx}
+                        title={stat.title}
+                        value={stat.value}
+                        trend={stat.trend}
+                        subtext={stat.subtext}
+                        icon={getIcon(stat.title)}
+                        iconBg={colors.bg}
+                        iconColor={colors.text}
+                        status={stat.status as any}
+                    />
+                );
+            })}
         </div>
     );
 };
