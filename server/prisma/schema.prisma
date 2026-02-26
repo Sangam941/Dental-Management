@@ -64,48 +64,35 @@ model DoctorSchedule {
   @@map("doctor_schedules")
 }
 
-model OpdSheet {
-  id          String   @id @default(uuid()) @db.Uuid
-  sheetDateBs String   @unique
-  sheetMonth  String?
-  notes       String?
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  entries     OpdEntry[]
-
-  @@map("opd_sheets")
-}
-
 model OpdEntry {
-  id          String   @id @default(uuid()) @db.Uuid
-  sheetId     String   @db.Uuid
+  id            String   @id @default(uuid()) @db.Uuid
 
-  caseType    CaseType
+  entryDateBs   String
+  entryMonth    String?
+  notes         String?
 
-  regNo       String?
-  patientName String
-  age         Int?
-  address     String?
-  phoneNo     String?
-  treatment   String?
+  caseType      CaseType
 
-  doctorId    String?  @db.Uuid
+  regNo         String?
+  patientName   String
+  age           Int?
+  address       String?
+  phoneNo       String?
+  treatment     String?
 
-  totalAmount   Decimal @default(0)
-  paymentMethod PaymentMethod @default(CASH)
-  paidAmount    Decimal @default(0)
-  dueAmount     Decimal @default(0)
-  expenseAmount Decimal @default(0)
+  doctorId      String?  @db.Uuid
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  totalAmount   Decimal? @default(0)
+  paymentMethod PaymentMethod? @default(CASH)
+  paidAmount    Decimal? @default(0)
+  dueAmount     Decimal? @default(0)
+  expenseAmount Decimal? @default(0)
 
-  sheet       OpdSheet @relation(fields: [sheetId], references: [id], onDelete: Cascade)
-  doctor      Doctor?  @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  @@index([sheetId])
+  doctor        Doctor?  @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+
   @@index([doctorId])
   @@map("opd_entries")
 }

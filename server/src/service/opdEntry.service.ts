@@ -9,13 +9,8 @@ const computeDueAmount = (total: number, paid: number): number => {
 };
 
 export const createOpdEntryService = async (
-    sheetId: string,
     data: CreateOpdEntryInput
 ) => {
-    // Verify sheet exists
-    const sheet = await prisma.opdSheet.findUnique({ where: { id: sheetId } });
-    if (!sheet) throw new AppError('OPD sheet not found', 404);
-
     // Verify doctor exists if provided
     if (data.doctorId) {
         const doctor = await prisma.doctor.findUnique({ where: { id: data.doctorId } });
@@ -29,7 +24,9 @@ export const createOpdEntryService = async (
 
     const entry = await prisma.opdEntry.create({
         data: {
-            sheetId,
+            entryDateBs: data.entryDateBs,
+            entryMonth: data.entryMonth ?? null,
+            notes: data.notes ?? null,
             caseType: data.caseType,
             regNo: data.regNo ?? null,
             patientName: data.patientName,
@@ -39,7 +36,7 @@ export const createOpdEntryService = async (
             treatment: data.treatment ?? null,
             doctorId: data.doctorId ?? null,
             totalAmount: new Prisma.Decimal(totalAmount),
-            paymentMethod: data.paymentMethod ?? 'CASH',
+            paymentMethod: (data.paymentMethod as any) ?? 'CASH',
             paidAmount: new Prisma.Decimal(paidAmount),
             dueAmount: new Prisma.Decimal(dueAmount),
             expenseAmount: new Prisma.Decimal(expenseAmount),
@@ -52,27 +49,18 @@ export const createOpdEntryService = async (
     return entry;
 };
 
-export const getOpdEntriesService = async (
-    sheetId: string,
-    search?: string
-) => {
-    const sheet = await prisma.opdSheet.findUnique({ where: { id: sheetId } });
-    if (!sheet) throw new AppError('OPD sheet not found', 404);
-
+export const getOpdEntriesService = async (filters: {
+    doctorId?: string;
+    entryMonth?: string;
+    entryDateBs?: string;
+} = {}) => {
     const entries = await prisma.opdEntry.findMany({
         where: {
-            sheetId,
-            ...(search
-                ? {
-                    OR: [
-                        { patientName: { contains: search, mode: 'insensitive' } },
-                        { regNo: { contains: search, mode: 'insensitive' } },
-                        { phoneNo: { contains: search, mode: 'insensitive' } },
-                    ],
-                }
-                : {}),
+            ...(filters.doctorId && { doctorId: filters.doctorId }),
+            ...(filters.entryMonth && { entryMonth: filters.entryMonth }),
+            ...(filters.entryDateBs && { entryDateBs: filters.entryDateBs }),
         },
-        orderBy: { createdAt: 'asc' },
+        orderBy: { createdAt: 'desc' },
         include: {
             doctor: { select: { id: true, fullName: true } },
         },
@@ -86,7 +74,6 @@ export const getOpdEntryByIdService = async (entryId: string) => {
         where: { id: entryId },
         include: {
             doctor: { select: { id: true, fullName: true } },
-            sheet: { select: { id: true, sheetDateBs: true, sheetMonth: true } },
         },
     });
 
@@ -122,6 +109,9 @@ export const updateOpdEntryService = async (
     const updated = await prisma.opdEntry.update({
         where: { id: entryId },
         data: {
+            ...(data.entryDateBs && { entryDateBs: data.entryDateBs }),
+            ...(data.entryMonth !== undefined && { entryMonth: data.entryMonth }),
+            ...(data.notes !== undefined && { notes: data.notes }),
             ...(data.caseType && { caseType: data.caseType }),
             ...(data.regNo !== undefined && { regNo: data.regNo }),
             ...(data.patientName && { patientName: data.patientName }),
@@ -130,13 +120,13 @@ export const updateOpdEntryService = async (
             ...(data.phoneNo !== undefined && { phoneNo: data.phoneNo }),
             ...(data.treatment !== undefined && { treatment: data.treatment }),
             ...(data.doctorId !== undefined && { doctorId: data.doctorId }),
-            ...(data.paymentMethod && { paymentMethod: data.paymentMethod }),
+            ...(data.paymentMethod && { paymentMethod: data.paymentMethod as any }),
             totalAmount: new Prisma.Decimal(totalAmount),
             paidAmount: new Prisma.Decimal(paidAmount),
             dueAmount: new Prisma.Decimal(dueAmount),
-            ...(data.expenseAmount !== undefined && {
-                expenseAmount: new Prisma.Decimal(data.expenseAmount),
-            }),
+            expenseAmount: data.expenseAmount !== undefined
+                ? new Prisma.Decimal(data.expenseAmount ?? 0)
+                : undefined,
         },
         include: {
             doctor: { select: { id: true, fullName: true } },

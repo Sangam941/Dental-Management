@@ -11,7 +11,7 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-   
+
     console.log("Seeding admin...");
     await prisma.adminProfile.upsert({
         where: { email: "admin1@clinic.com" },
@@ -19,11 +19,11 @@ async function main() {
         create: {
             id: crypto.randomUUID(),
             email: "admin1@clinic.com",
-            password: "admin123" 
+            password: "admin123"
         }
     });
 
-   
+
     console.log("Seeding departments...");
     const departments = await Promise.all([
         prisma.department.upsert({ where: { name: "Cardiology" }, update: {}, create: { name: "Cardiology" } }),
@@ -33,7 +33,7 @@ async function main() {
         prisma.department.upsert({ where: { name: "Neurology" }, update: {}, create: { name: "Neurology" } })
     ]);
 
-  
+
     console.log("Seeding doctors...");
     const doctors = await Promise.all([
         prisma.doctor.create({
@@ -73,14 +73,14 @@ async function main() {
         })
     ]);
 
-    
+
     console.log("Seeding doctor schedules...");
     await Promise.all(
         doctors.map((doc, index) =>
             prisma.doctorSchedule.create({
                 data: {
                     doctorId: doc.id,
-                    dayOfWeek: Object.values(DayOfWeek)[index],
+                    dayOfWeek: Object.values(DayOfWeek)[index % 7] as DayOfWeek,
                     startTime: new Date("2024-01-01T09:00:00"),
                     endTime: new Date("2024-01-01T17:00:00"),
                     room: `10${index + 1}`
@@ -89,30 +89,22 @@ async function main() {
         )
     );
 
-   
-    console.log("Seeding OPD sheets...");
-    const sheets = await Promise.all([
-        prisma.opdSheet.upsert({ where: { sheetDateBs: "2082-10-01" }, update: {}, create: { sheetDateBs: "2082-10-01", sheetMonth: "KARTIK" } }),
-        prisma.opdSheet.upsert({ where: { sheetDateBs: "2082-10-02" }, update: {}, create: { sheetDateBs: "2082-10-02", sheetMonth: "KARTIK" } }),
-        prisma.opdSheet.upsert({ where: { sheetDateBs: "2082-10-03" }, update: {}, create: { sheetDateBs: "2082-10-03", sheetMonth: "KARTIK" } }),
-        prisma.opdSheet.upsert({ where: { sheetDateBs: "2082-10-04" }, update: {}, create: { sheetDateBs: "2082-10-04", sheetMonth: "KARTIK" } }),
-        prisma.opdSheet.upsert({ where: { sheetDateBs: "2082-10-05" }, update: {}, create: { sheetDateBs: "2082-10-05", sheetMonth: "KARTIK" } })
-    ]);
 
- 
     console.log("Seeding OPD entries...");
+    const baseDate = "2082-10-";
     await Promise.all(
-        sheets.map((sheet, index) =>
+        doctors.map((doctor, index) =>
             prisma.opdEntry.create({
                 data: {
-                    sheetId: sheet.id,
+                    entryDateBs: `${baseDate}${String(index + 1).padStart(2, '0')}`,
+                    entryMonth: "KARTIK",
                     caseType: CaseType.NEW,
                     patientName: `Patient ${index + 1}`,
                     age: 25 + index,
                     address: "Kathmandu",
                     phoneNo: "9811111111",
                     treatment: "General Checkup",
-                    doctorId: doctors[index].id,
+                    doctorId: doctor.id,
                     totalAmount: 500,
                     paymentMethod: PaymentMethod.CASH,
                     paidAmount: 500,

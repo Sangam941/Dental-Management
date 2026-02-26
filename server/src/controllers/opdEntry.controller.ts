@@ -8,9 +8,7 @@ export const createOpdEntry = async (
     next: NextFunction
 ): Promise<void> => {
     try {
-        const { sheetId } = req.params as { sheetId: string };
         const entry = await opdEntryService.createOpdEntryService(
-            sheetId,
             req.body
         );
         res.status(201).json({ message: 'OPD entry created successfully', entry });
@@ -26,12 +24,16 @@ export const getOpdEntries = async (
     next: NextFunction
 ): Promise<void> => {
     try {
-        const { sheetId } = req.params as { sheetId: string };
-        const search = req.query.search as string | undefined;
-        const entries = await opdEntryService.getOpdEntriesService(
-            sheetId,
-            search
-        );
+        const { doctorId, entryMonth, entryDateBs } = req.query as {
+            doctorId?: string;
+            entryMonth?: string;
+            entryDateBs?: string;
+        };
+        const entries = await opdEntryService.getOpdEntriesService({
+            doctorId,
+            entryMonth,
+            entryDateBs,
+        });
         res.status(200).json({ entries });
     } catch (error: unknown) {
         if (error instanceof AppError) return next(error);

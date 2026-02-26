@@ -66,10 +66,9 @@ export const deleteDepartmentService = async (id: string) => {
         throw new AppError('Department not found', 404);
     }
 
-    // Soft delete — mark as inactive
-    const deleted = await prisma.department.update({
+    // Hard delete
+    const deleted = await prisma.department.delete({
         where: { id },
-        data: { isActive: false },
     });
 
     return deleted;

@@ -7,7 +7,6 @@ import authRouter from './routes/auth.router.js';
 import departmentRouter from './routes/department.router.js';
 import doctorRouter from './routes/doctor.router.js';
 import doctorScheduleRouter from './routes/doctorSchedule.router.js';
-import opdSheetRouter from './routes/opdSheet.router.js';
 import opdEntryRouter from './routes/opdEntry.router.js';
 
 import { AppError } from './utils/appError.js';
@@ -33,7 +32,6 @@ app.use('/auth', authRouter);
 app.use('/departments', departmentRouter);
 app.use('/doctors', doctorRouter);
 app.use('/doctor-schedules', doctorScheduleRouter);
-app.use('/opd-sheets', opdSheetRouter);
 app.use('/opd-entries', opdEntryRouter);
 
 //  404 Handler 

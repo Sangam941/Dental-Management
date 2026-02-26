@@ -100,10 +100,9 @@ export const deleteDoctorService = async (id: string) => {
         throw new AppError('Doctor not found', 404);
     }
 
-    // Soft delete — mark as inactive
-    const deleted = await prisma.doctor.update({
+    // Hard delete
+    const deleted = await prisma.doctor.delete({
         where: { id },
-        data: { isActive: false },
     });
 
     return deleted;

@@ -7,9 +7,9 @@ export const validate =
         async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
             try {
                 if (
-                    !req.body ||
-                    (typeof req.body === 'object' && Object.keys(req.body).length === 0 &&
-                        Object.keys(req.query).length === 0 && Object.keys(req.params).length === 0)
+                    req.method !== 'GET' && req.method !== 'DELETE' &&
+                    (!req.body || (typeof req.body === 'object' && Object.keys(req.body).length === 0 &&
+                        Object.keys(req.query).length === 0 && Object.keys(req.params).length === 0))
                 ) {
                     return next(new AppError('Request body is required', 400));
                 }

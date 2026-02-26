@@ -1,0 +1,435 @@
+{
+    "info": {
+        "_postman_id": "8bf3c998-8d53-418f-b144-44a629cd53fe",
+        "name": "Clinic Center API",
+        "description": "API collection for the Clinic Center server management.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Auth",
+            "item": [
+                {
+                    "name": "Login",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"admin1@clinic.com\",\n  \"password\": \"admin123\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseURL}}/auth/login",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseURL}}/auth/logout",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "logout"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Departments",
+            "item": [
+                {
+                    "name": "Get All Departments",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseURL}}/departments",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "departments"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Department",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Cardiology\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseURL}}/departments",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "departments"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Department",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Advanced Cardiology\",\n  \"isActive\": true\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseURL}}/departments/:id",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "departments",
+                                ":id"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": ""
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Department",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseURL}}/departments/:id",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "departments",
+                                ":id"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": ""
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Doctors",
+            "item": [
+                {
+                    "name": "Get All Doctors",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseURL}}/doctors",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "doctors"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Doctor",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"fullName\": \"Dr. John Doe\",\n  \"phoneNumber\": \"9800000000\",\n  \"departmentId\": \"uuid-here\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseURL}}/doctors",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "doctors"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Doctor",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"fullName\": \"Dr. Jane Doe\",\n  \"isActive\": true\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseURL}}/doctors/:id",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "doctors",
+                                ":id"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": ""
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Doctor",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseURL}}/doctors/:id",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "doctors",
+                                ":id"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": ""
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "OPD Entries",
+            "item": [
+                {
+                    "name": "Get All OPD Entries (No Filter)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseURL}}/opd-entries",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "opd-entries"
+                            ]
+                        },
+                        "description": "Fetch all OPD entries that are entered without any filtering."
+                    }
+                },
+                {
+                    "name": "Get Filtered OPD Entries",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseURL}}/opd-entries?doctorId=&entryMonth=&entryDateBs=",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "opd-entries"
+                            ],
+                            "query": [
+                                {
+                                    "key": "doctorId",
+                                    "value": "",
+                                    "description": "Optional: Filter by Doctor UUID"
+                                },
+                                {
+                                    "key": "entryMonth",
+                                    "value": "",
+                                    "description": "Optional: Filter by Month (e.g., KARTIK)"
+                                },
+                                {
+                                    "key": "entryDateBs",
+                                    "value": "",
+                                    "description": "Optional: Filter by exact BS Date"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create OPD Entry",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"entryDateBs\": \"2082-10-15\",\n  \"entryMonth\": \"KARTIK\",\n  \"caseType\": \"NEW\",\n  \"patientName\": \"Jane Smith\",\n  \"age\": 30,\n  \"address\": \"Kathmandu\",\n  \"phoneNo\": \"9811111111\",\n  \"treatment\": \"General Checkup\",\n  \"doctorId\": \"uuid-here\",\n  \"totalAmount\": 500,\n  \"paymentMethod\": \"CASH\",\n  \"paidAmount\": 500,\n  \"expenseAmount\": 0\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseURL}}/opd-entries",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "opd-entries"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Entry By ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseURL}}/opd-entries/:entryId",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "opd-entries",
+                                ":entryId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "entryId",
+                                    "value": ""
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update OPD Entry",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"treatment\": \"Updated treatment\",\n  \"paidAmount\": 600\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseURL}}/opd-entries/:entryId",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "opd-entries",
+                                ":entryId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "entryId",
+                                    "value": ""
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete OPD Entry",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseURL}}/opd-entries/:entryId",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "opd-entries",
+                                ":entryId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "entryId",
+                                    "value": ""
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "",
+                "type": "string"
+            }
+        ]
+    },
+    "variable": [
+        {
+            "key": "baseURL",
+            "value": "http://localhost:3000",
+            "type": "string"
+        }
+    ]
+}
