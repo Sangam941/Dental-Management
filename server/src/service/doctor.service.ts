@@ -1,6 +1,5 @@
 import prisma from '../config/prisma.js';
 import { AppError } from '../utils/appError.js';
-import type { DayOfWeek } from '@prisma/client';
 import type { CreateDoctorInput, UpdateDoctorInput } from '../validators/doctor.validator.js';
 
 export const createDoctorService = async (data: CreateDoctorInput) => {
@@ -22,6 +21,7 @@ export const createDoctorService = async (data: CreateDoctorInput) => {
             fullName: data.fullName,
             phoneNumber: data.phoneNumber ?? null,
             departmentId: data.departmentId ?? null,
+            gender: data.gender ?? 'MALE',
         },
         include: { department: true },
     });
@@ -35,10 +35,9 @@ export const getDoctorsService = async (departmentId?: string, activeOnly: boole
             ...(activeOnly ? { isActive: true } : {}),
             ...(departmentId ? { departmentId } : {}),
         },
-        orderBy: { fullName: 'asc' },
+        orderBy: { createdAt: 'desc' },
         include: {
-            department: { select: { id: true, name: true } },
-            _count: { select: { schedules: true } },
+            department: { select: { id: true, departmentName: true } },
         },
     });
 
@@ -50,10 +49,6 @@ export const getDoctorByIdService = async (id: string) => {
         where: { id },
         include: {
             department: true,
-            schedules: {
-                where: { isActive: true },
-                orderBy: { dayOfWeek: 'asc' },
-            },
         },
     });
 
@@ -106,36 +101,4 @@ export const deleteDoctorService = async (id: string) => {
     });
 
     return deleted;
-};
-
-export const getDoctorAvailabilityService = async (day: DayOfWeek) => {
-    const doctors = await prisma.doctor.findMany({
-        where: { isActive: true },
-        include: {
-            department: { select: { id: true, name: true } },
-            schedules: {
-                where: {
-                    dayOfWeek: day,
-                    isActive: true,
-                },
-            },
-        },
-    });
-
-    // Only return doctors that have a schedule on the given day
-    return doctors
-        .filter((doc) => doc.schedules.length > 0)
-        .map((doc) => ({
-            id: doc.id,
-            fullName: doc.fullName,
-            phoneNumber: doc.phoneNumber,
-            department: doc.department,
-            availableSlots: doc.schedules.map((s) => ({
-                id: s.id,
-                day: s.dayOfWeek,
-                startTime: s.startTime,
-                endTime: s.endTime,
-                room: s.room,
-            })),
-        }));
 };

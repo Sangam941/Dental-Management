@@ -24,15 +24,15 @@ export const getOpdEntries = async (
     next: NextFunction
 ): Promise<void> => {
     try {
-        const { doctorId, entryMonth, entryDateBs } = req.query as {
+        const { doctorId, entryMonth, entryDate } = req.query as {
             doctorId?: string;
             entryMonth?: string;
-            entryDateBs?: string;
+            entryDate?: string;
         };
         const entries = await opdEntryService.getOpdEntriesService({
             doctorId,
             entryMonth,
-            entryDateBs,
+            entryDate,
         });
         res.status(200).json({ entries });
     } catch (error: unknown) {

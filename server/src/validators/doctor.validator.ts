@@ -17,6 +17,7 @@ export const createDoctorSchema = z.object({
             .uuid('Invalid department ID')
             .optional()
             .nullable(),
+        gender: z.enum(['MALE', 'FEMALE', 'OTHER']).optional().nullable().default('MALE'),
     }),
 });
 
@@ -29,6 +30,7 @@ export const updateDoctorSchema = z.object({
         phoneNumber: z.string().min(7).max(20).optional().nullable(),
         departmentId: z.string().uuid('Invalid department ID').optional().nullable(),
         isActive: z.boolean().optional(),
+        gender: z.enum(['MALE', 'FEMALE', 'OTHER']).optional().nullable(),
     }),
 });
 

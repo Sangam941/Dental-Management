@@ -1,7 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import * as doctorService from '../service/doctor.service.js';
 import { AppError } from '../utils/appError.js';
-import type { DayOfWeek } from '@prisma/client';
 
 export const createDoctor = async (
     req: Request,
@@ -75,30 +74,5 @@ export const deleteDoctor = async (
     } catch (error: unknown) {
         if (error instanceof AppError) return next(error);
         next(new AppError('Failed to delete doctor', 500));
-    }
-};
-
-export const getDoctorAvailability = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-): Promise<void> => {
-    try {
-        const day = req.query.day as string;
-        const validDays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-
-        if (!day || !validDays.includes(day.toUpperCase())) {
-            return next(
-                new AppError(`Invalid day. Must be one of: ${validDays.join(', ')}`, 400)
-            );
-        }
-
-        const availability = await doctorService.getDoctorAvailabilityService(
-            day.toUpperCase() as DayOfWeek
-        );
-        res.status(200).json({ day: day.toUpperCase(), doctors: availability });
-    } catch (error: unknown) {
-        if (error instanceof AppError) return next(error);
-        next(new AppError('Failed to fetch doctor availability', 500));
     }
 };

@@ -1,12 +1,6 @@
 import prisma from '../config/prisma.js';
 import { AppError } from '../utils/appError.js';
 import type { CreateOpdEntryInput, UpdateOpdEntryInput } from '../validators/opdEntry.validator.js';
-import { Prisma } from '@prisma/client';
-
-// Auto-compute dueAmount = totalAmount - paidAmount (floor at 0)
-const computeDueAmount = (total: number, paid: number): number => {
-    return Math.max(0, total - paid);
-};
 
 export const createOpdEntryService = async (
     data: CreateOpdEntryInput
@@ -17,29 +11,20 @@ export const createOpdEntryService = async (
         if (!doctor) throw new AppError('Doctor not found', 404);
     }
 
-    const totalAmount = data.totalAmount ?? 0;
-    const paidAmount = data.paidAmount ?? 0;
-    const dueAmount = computeDueAmount(totalAmount, paidAmount);
-    const expenseAmount = data.expenseAmount ?? 0;
-
     const entry = await prisma.opdEntry.create({
         data: {
-            entryDateBs: data.entryDateBs,
+            entryDate: data.entryDate,
             entryMonth: data.entryMonth ?? null,
             notes: data.notes ?? null,
             caseType: data.caseType,
             regNo: data.regNo ?? null,
-            patientName: data.patientName,
+            fullName: data.fullName,
             age: data.age ?? null,
             address: data.address ?? null,
-            phoneNo: data.phoneNo ?? null,
+            phoneNumber: data.phoneNumber ?? null,
             treatment: data.treatment ?? null,
+            gender: (data.gender as any) ?? 'MALE',
             doctorId: data.doctorId ?? null,
-            totalAmount: new Prisma.Decimal(totalAmount),
-            paymentMethod: (data.paymentMethod as any) ?? 'CASH',
-            paidAmount: new Prisma.Decimal(paidAmount),
-            dueAmount: new Prisma.Decimal(dueAmount),
-            expenseAmount: new Prisma.Decimal(expenseAmount),
         },
         include: {
             doctor: { select: { id: true, fullName: true } },
@@ -52,13 +37,13 @@ export const createOpdEntryService = async (
 export const getOpdEntriesService = async (filters: {
     doctorId?: string;
     entryMonth?: string;
-    entryDateBs?: string;
+    entryDate?: string;
 } = {}) => {
     const entries = await prisma.opdEntry.findMany({
         where: {
             ...(filters.doctorId && { doctorId: filters.doctorId }),
             ...(filters.entryMonth && { entryMonth: filters.entryMonth }),
-            ...(filters.entryDateBs && { entryDateBs: filters.entryDateBs }),
+            ...(filters.entryDate && { entryDate: filters.entryDate }),
         },
         orderBy: { createdAt: 'desc' },
         include: {
@@ -95,38 +80,21 @@ export const updateOpdEntryService = async (
         if (!doctor) throw new AppError('Doctor not found', 404);
     }
 
-    // Recompute dueAmount with new or existing values
-    const totalAmount =
-        data.totalAmount !== undefined
-            ? data.totalAmount
-            : Number(entry.totalAmount);
-    const paidAmount =
-        data.paidAmount !== undefined
-            ? data.paidAmount
-            : Number(entry.paidAmount);
-    const dueAmount = computeDueAmount(totalAmount, paidAmount);
-
     const updated = await prisma.opdEntry.update({
         where: { id: entryId },
         data: {
-            ...(data.entryDateBs && { entryDateBs: data.entryDateBs }),
+            ...(data.entryDate && { entryDate: data.entryDate }),
             ...(data.entryMonth !== undefined && { entryMonth: data.entryMonth }),
             ...(data.notes !== undefined && { notes: data.notes }),
             ...(data.caseType && { caseType: data.caseType }),
             ...(data.regNo !== undefined && { regNo: data.regNo }),
-            ...(data.patientName && { patientName: data.patientName }),
+            ...(data.fullName && { fullName: data.fullName }),
             ...(data.age !== undefined && { age: data.age }),
             ...(data.address !== undefined && { address: data.address }),
-            ...(data.phoneNo !== undefined && { phoneNo: data.phoneNo }),
+            ...(data.phoneNumber !== undefined && { phoneNumber: data.phoneNumber }),
             ...(data.treatment !== undefined && { treatment: data.treatment }),
+            ...(data.gender !== undefined && { gender: data.gender as any }),
             ...(data.doctorId !== undefined && { doctorId: data.doctorId }),
-            ...(data.paymentMethod && { paymentMethod: data.paymentMethod as any }),
-            totalAmount: new Prisma.Decimal(totalAmount),
-            paidAmount: new Prisma.Decimal(paidAmount),
-            dueAmount: new Prisma.Decimal(dueAmount),
-            expenseAmount: data.expenseAmount !== undefined
-                ? new Prisma.Decimal(data.expenseAmount ?? 0)
-                : undefined,
         },
         include: {
             doctor: { select: { id: true, fullName: true } },

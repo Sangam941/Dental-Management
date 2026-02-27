@@ -17,11 +17,11 @@ model AdminProfile {
 }
 
 model Department {
-  id        String   @id @default(uuid()) @db.Uuid
-  name      String   @unique
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String   @id @default(uuid()) @db.Uuid
+  departmentName String   @unique
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   doctors   Doctor[]
 
@@ -32,56 +32,52 @@ model Doctor {
   id           String   @id @default(uuid()) @db.Uuid
   fullName     String
   phoneNumber  String?
+  gender       Gender?  @default(MALE)
   departmentId String?  @db.Uuid
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   department   Department?      @relation(fields: [departmentId], references: [id], onDelete: SetNull)
-  schedules    DoctorSchedule[]
   opdEntries   OpdEntry[]
 
   @@index([departmentId])
   @@map("doctors")
 }
 
-model DoctorSchedule {
-  id        String   @id @default(uuid()) @db.Uuid
-  doctorId  String   @db.Uuid
-
-  dayOfWeek DayOfWeek
-  startTime DateTime
-  endTime   DateTime
-
-  room      String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  doctor    Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
-
-  @@index([doctorId, dayOfWeek])
-  @@map("doctor_schedules")
-}
-
 model OpdEntry {
   id            String   @id @default(uuid()) @db.Uuid
 
-  entryDateBs   String
+  entryDate     String
   entryMonth    String?
   notes         String?
 
   caseType      CaseType
 
   regNo         String?
-  patientName   String
+  fullName      String
   age           Int?
   address       String?
-  phoneNo       String?
+  phoneNumber   String?
   treatment     String?
+  gender        Gender? @default(MALE)
 
   doctorId      String?  @db.Uuid
 
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  doctor        Doctor?  @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+  billings      Billing[]
+
+  @@index([doctorId])
+  @@map("opd_entries")
+}
+
+model Billing {
+  id            String   @id @default(uuid()) @db.Uuid
+  opdEntryId    String   @db.Uuid
+  
   totalAmount   Decimal? @default(0)
   paymentMethod PaymentMethod? @default(CASH)
   paidAmount    Decimal? @default(0)
@@ -91,10 +87,16 @@ model OpdEntry {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  doctor        Doctor?  @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+  opdEntry      OpdEntry @relation(fields: [opdEntryId], references: [id], onDelete: Cascade)
 
-  @@index([doctorId])
-  @@map("opd_entries")
+  @@index([opdEntryId])
+  @@map("billings")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
 }
 
 enum CaseType {
@@ -105,16 +107,4 @@ enum CaseType {
 enum PaymentMethod {
   CASH
   ONLINE
-  CARD
-  OTHER
-}
-
-enum DayOfWeek {
-  SUN
-  MON
-  TUE
-  WED
-  THU
-  FRI
-  SAT
 }

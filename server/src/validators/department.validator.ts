@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const createDepartmentSchema = z.object({
     body: z.object({
-        name: z
+        departmentName: z
             .string({ required_error: 'Department name is required' })
             .min(1, 'Department name cannot be empty')
             .max(100, 'Department name must not exceed 100 characters'),
@@ -14,7 +14,7 @@ export const updateDepartmentSchema = z.object({
         id: z.string({ required_error: 'Department ID is required' }).uuid('Invalid department ID'),
     }),
     body: z.object({
-        name: z.string().min(1, 'Department name cannot be empty').max(100).optional(),
+        departmentName: z.string().min(1, 'Department name cannot be empty').max(100).optional(),
         isActive: z.boolean().optional(),
     }),
 });

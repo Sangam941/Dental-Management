@@ -80,7 +80,7 @@
                         "header": [],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"name\": \"Cardiology\"\n}",
+                            "raw": "{\n  \"departmentName\": \"Cardiology\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -105,7 +105,7 @@
                         "header": [],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"name\": \"Advanced Cardiology\",\n  \"isActive\": true\n}",
+                            "raw": "{\n  \"departmentName\": \"Advanced Cardiology\",\n  \"isActive\": true\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -181,7 +181,7 @@
                         "header": [],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"fullName\": \"Dr. John Doe\",\n  \"phoneNumber\": \"9800000000\",\n  \"departmentId\": \"uuid-here\"\n}",
+                            "raw": "{\n  \"fullName\": \"Dr. John Doe\",\n  \"phoneNumber\": \"9800000000\",\n  \"gender\": \"MALE\",\n  \"departmentId\": \"uuid-here\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -206,7 +206,7 @@
                         "header": [],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"fullName\": \"Dr. Jane Doe\",\n  \"isActive\": true\n}",
+                            "raw": "{\n  \"fullName\": \"Dr. Jane Doe\",\n  \"isActive\": true,\n  \"gender\": \"FEMALE\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -282,7 +282,7 @@
                         "method": "GET",
                         "header": [],
                         "url": {
-                            "raw": "{{baseURL}}/opd-entries?doctorId=&entryMonth=&entryDateBs=",
+                            "raw": "{{baseURL}}/opd-entries?doctorId=&entryMonth=&entryDate=",
                             "host": [
                                 "{{baseURL}}"
                             ],
@@ -301,7 +301,7 @@
                                     "description": "Optional: Filter by Month (e.g., KARTIK)"
                                 },
                                 {
-                                    "key": "entryDateBs",
+                                    "key": "entryDate",
                                     "value": "",
                                     "description": "Optional: Filter by exact BS Date"
                                 }
@@ -316,7 +316,7 @@
                         "header": [],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"entryDateBs\": \"2082-10-15\",\n  \"entryMonth\": \"KARTIK\",\n  \"caseType\": \"NEW\",\n  \"patientName\": \"Jane Smith\",\n  \"age\": 30,\n  \"address\": \"Kathmandu\",\n  \"phoneNo\": \"9811111111\",\n  \"treatment\": \"General Checkup\",\n  \"doctorId\": \"uuid-here\",\n  \"totalAmount\": 500,\n  \"paymentMethod\": \"CASH\",\n  \"paidAmount\": 500,\n  \"expenseAmount\": 0\n}",
+                            "raw": "{\n  \"entryDate\": \"2082-10-15\",\n  \"entryMonth\": \"KARTIK\",\n  \"caseType\": \"NEW\",\n  \"fullName\": \"Jane Smith\",\n  \"gender\": \"FEMALE\",\n  \"age\": 30,\n  \"address\": \"Kathmandu\",\n  \"phoneNumber\": \"9811111111\",\n  \"treatment\": \"General Checkup\",\n  \"doctorId\": \"uuid-here\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -364,7 +364,7 @@
                         "header": [],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"treatment\": \"Updated treatment\",\n  \"paidAmount\": 600\n}",
+                            "raw": "{\n  \"treatment\": \"Updated treatment\",\n  \"fullName\": \"Jane Doe\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -406,6 +406,130 @@
                             "variable": [
                                 {
                                     "key": "entryId",
+                                    "value": ""
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Billings",
+            "item": [
+                {
+                    "name": "Get All Billings",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseURL}}/billings",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "billings"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Billing",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"opdEntryId\": \"uuid-here\",\n  \"totalAmount\": 1500,\n  \"paymentMethod\": \"CASH\",\n  \"paidAmount\": 1000,\n  \"expenseAmount\": 100\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseURL}}/billings",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "billings"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Billing By ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseURL}}/billings/:billingId",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "billings",
+                                ":billingId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "billingId",
+                                    "value": ""
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Billing",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"paidAmount\": 1500,\n  \"paymentMethod\": \"ONLINE\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseURL}}/billings/:billingId",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "billings",
+                                ":billingId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "billingId",
+                                    "value": ""
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Billing",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseURL}}/billings/:billingId",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "billings",
+                                ":billingId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "billingId",
                                     "value": ""
                                 }
                             ]

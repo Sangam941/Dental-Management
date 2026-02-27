@@ -5,15 +5,15 @@ import type { CreateDepartmentInput, UpdateDepartmentInput } from '../validators
 export const createDepartmentService = async (data: CreateDepartmentInput) => {
     // Check for duplicate name
     const existing = await prisma.department.findUnique({
-        where: { name: data.name },
+        where: { departmentName: data.departmentName },
     });
 
     if (existing) {
-        throw new AppError(`Department "${data.name}" already exists`, 409);
+        throw new AppError(`Department "${data.departmentName}" already exists`, 409);
     }
 
     const department = await prisma.department.create({
-        data: { name: data.name },
+        data: { departmentName: data.departmentName },
     });
 
     return department;
@@ -22,7 +22,7 @@ export const createDepartmentService = async (data: CreateDepartmentInput) => {
 export const getDepartmentsService = async (activeOnly: boolean = false) => {
     const departments = await prisma.department.findMany({
         where: activeOnly ? { isActive: true } : undefined,
-        orderBy: { name: 'asc' },
+        orderBy: { departmentName: 'asc' },
         include: {
             _count: { select: { doctors: true } },
         },
@@ -42,12 +42,12 @@ export const updateDepartmentService = async (
     }
 
     // If renaming, check duplicate name
-    if (data.name && data.name !== department.name) {
+    if (data.departmentName && data.departmentName !== department.departmentName) {
         const existing = await prisma.department.findUnique({
-            where: { name: data.name },
+            where: { departmentName: data.departmentName },
         });
         if (existing) {
-            throw new AppError(`Department "${data.name}" already exists`, 409);
+            throw new AppError(`Department "${data.departmentName}" already exists`, 409);
         }
     }
 
