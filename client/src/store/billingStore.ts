@@ -1,19 +1,18 @@
 import { create } from 'zustand';
-import type { PatientPayload } from '../types';
+import type { BillingPayload, PatientPayload } from '../types';
 import { persist } from 'zustand/middleware';
 import toast from 'react-hot-toast';
 // In a real billing store, this would import billing-specific API functions.
-import { createOPDEntry, deletePatient, getAllEntry, updateOPDEntry } from '../api/patient';
+import { createBill, deleteBill, getAllBills, updateBill } from '../api/billings';
 
-interface BillingRecord extends PatientPayload {}
 
 interface BillingStore {
-    billingRecords: BillingRecord[];
+    billingRecords: BillingPayload[];
     isLoading: boolean;
     error: string | null;
     fetchBillingRecords: () => Promise<void>;
-    addBillingRecord: (record: BillingRecord) => void;
-    updateBillingRecord: (id: string, updates: BillingRecord) => void;
+    addBillingRecord: (record: BillingPayload) => void;
+    updateBillingRecord: (id: string, updates: BillingPayload) => void;
     deleteBillingRecord: (id: string) => void;
 }
 
@@ -26,7 +25,7 @@ export const useBillingStore = create<BillingStore>()(
             fetchBillingRecords: async () => {
                 set({ isLoading: true });
                 try {
-                    const allBillingRecords = await getAllEntry(); // Should point to billing API in real usage
+                    const allBillingRecords = await getAllBills(); // Should point to billing API in real usage
                     set({ billingRecords: allBillingRecords });
                 } catch (error) {
                     set({ error: 'Failed to fetch billing records' });
@@ -34,10 +33,10 @@ export const useBillingStore = create<BillingStore>()(
                     set({ isLoading: false });
                 }
             },
-            addBillingRecord: async (record: BillingRecord) => {
+            addBillingRecord: async (record: BillingPayload) => {
                 set({ isLoading: true });
                 try {
-                    const newRecord = await createOPDEntry(record); // Should call billing creation API
+                    const newRecord = await createBill(record); // Should call billing creation API
                     set({ billingRecords: [...get().billingRecords, newRecord] });
                     get().fetchBillingRecords();
                     toast.success("Billing record added successfully");
@@ -48,10 +47,10 @@ export const useBillingStore = create<BillingStore>()(
                     set({ isLoading: false });
                 }
             },
-            updateBillingRecord: async (id: string, updates: BillingRecord) => {
+            updateBillingRecord: async (id: string, updates: BillingPayload) => {
                 set({ isLoading: true });
                 try {
-                    const update = await updateOPDEntry(id, updates); // Should use billing update API
+                    const update = await updateBill(id, updates); // Should use billing update API
                     set((state) => ({
                         billingRecords: state.billingRecords.map((r) =>
                             r.id === id ? { ...r, ...update } : r
@@ -68,7 +67,7 @@ export const useBillingStore = create<BillingStore>()(
             },
             deleteBillingRecord: async (id) => {
                 try {
-                    await deletePatient(id); // Should use billing delete API
+                    await deleteBill(id); // Should use billing delete API
                     set((state) => ({
                         billingRecords: state.billingRecords.filter((r) => r.id !== id)
                     }));

@@ -44,7 +44,7 @@ const Departments: React.FC = () => {
     // Filtering
     const filtered = departments.filter(d => {
         const matchSearch =
-            d.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            d.departmentName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             d.id?.toLowerCase().includes(searchQuery.toLowerCase());
         const matchStatus = statusFilter === 'All'
             || (statusFilter === 'Active' && d.isActive)
@@ -79,7 +79,7 @@ const Departments: React.FC = () => {
     const openEditModal = (dept: Department) => {
         setSelectedDept(dept);
         setDeptId(dept.id);
-        setDeptName(dept.name);
+        setDeptName(dept.departmentName);
         setDeptStatus(dept.isActive);
         setFormError('');
         setIsEditModalOpen(true);
@@ -203,7 +203,7 @@ const Departments: React.FC = () => {
                                                     <Building2 size={18} className="text-admin-primary" />
                                                 </div>
                                                 <div>
-                                                    <h4 className="text-sm font-bold text-admin-text">{dept.name}</h4>
+                                                    <h4 className="text-sm font-bold text-admin-text">{dept.departmentName}</h4>
                                                     <p className="text-[10px] font-bold text-admin-text-faint">ID: {dept.id}</p>
                                                 </div>
                                             </div>
@@ -388,7 +388,7 @@ const Departments: React.FC = () => {
                             </div>
                             <h2 className="text-base font-black text-admin-text">Delete Department?</h2>
                             <p className="text-xs font-bold text-admin-text-muted">
-                                Are you sure you want to delete <span className="text-admin-text">{selectedDept.name}</span>? This action cannot be undone.
+                                Are you sure you want to delete <span className="text-admin-text">{selectedDept.departmentName}</span>? This action cannot be undone.
                             </p>
                         </div>
                         <div className="px-6 py-4 border-t border-admin-border-subtle flex justify-end gap-3">

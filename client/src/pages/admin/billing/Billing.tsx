@@ -1,12 +1,13 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Search, Plus, User, ArrowRight, FileDown, FileText, Printer, Eye, Trash2, Pencil, ChevronDown, Calendar, Phone, MapPin, DollarSign } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { usePatientStore } from '../../../store/patientStore';
-import type { PatientPayload } from '../../../types';
+import type { BillingPayload, PatientPayload } from '../../../types';
 import { useDoctorStore } from '../../../store/doctorStore';
+import { useBillingStore } from '../../../store/billingStore';
 
 const paymentOptions = [
   { value: 'CASH', label: 'Cash' },
@@ -15,7 +16,7 @@ const paymentOptions = [
 ];
 
 // Filter only patients with at least one billing field non-zero
-const filterNonZeroBilling = (patients: PatientPayload[]) =>
+const filterNonZeroBilling = (patients: BillingPayload[]) =>
   patients.filter((record) =>
     Number(record.totalAmount) > 0 ||
     Number(record.paidAmount) > 0 ||
@@ -23,9 +24,12 @@ const filterNonZeroBilling = (patients: PatientPayload[]) =>
     Number(record.expenseAmount) > 0
   );
 
+
 const Billing = () => {
-  const { patients, updatePatient } = usePatientStore();
+  // zustand
+  const { patients } = usePatientStore();
   const { doctors } = useDoctorStore()
+  const { fetchBillingRecords, billingRecords, addBillingRecord, updateBillingRecord, deleteBillingRecord } = useBillingStore()
 
   const [search, setSearch] = useState('');
   const [filteredPatients, setFilteredPatients] = useState<PatientPayload[]>([]);
@@ -44,12 +48,19 @@ const Billing = () => {
 
   // Modals for actions
   const [editModalPatient, setEditModalPatient] = useState<boolean>(false);
-  const [editPatientDetails, setEditPatientDetails] = useState<PatientPayload | null>(null);
-  const [viewModalPatient, setViewModalPatient] = useState<PatientPayload | null>(null);
-  // const [deleteModalPatientId, setDeleteModalPatientId] = useState<string | null>(null);
+  const [editPatientDetails, setEditPatientDetails] = useState<BillingPayload | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
+  const [viewModalPatient, setViewModalPatient] = useState<BillingPayload | null>(null);
+  const [deleteModalPatientId, setDeleteModalPatientId] = useState<string>('');
 
   const printTableRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
+
+
+  useEffect(() => {
+    fetchBillingRecords()
+  }, [])
+
 
   // Search patients
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,8 +74,8 @@ const Billing = () => {
     setFilteredPatients(
       patients?.filter(
         (patient) =>
-          patient?.patientName?.toLowerCase().includes(searchValue) ||
-          patient?.phoneNo?.includes(searchValue) ||
+          patient?.fullName?.toLowerCase().includes(searchValue) ||
+          patient?.phoneNumber?.includes(searchValue) ||
           patient?.id?.toLowerCase().includes(searchValue)
       )
     );
@@ -82,11 +93,8 @@ const Billing = () => {
 
   const handleSaveBilling = () => {
     if (!selectedPatient || !totalAmount) return;
-    const newRecord: PatientPayload = {
-      ...selectedPatient,
-      address: selectedPatient.address || '',
-      treatment: selectedPatient.treatment || '',
-      doctorId: selectedPatient?.doctorId || '--',
+    const newRecord: BillingPayload = {
+      opdEntryId: selectedPatient.id,
       totalAmount,
       paymentMethod,
       paidAmount,
@@ -94,7 +102,7 @@ const Billing = () => {
       expenseAmount,
     };
     if (selectedPatient.id) {
-      updatePatient(selectedPatient.id, newRecord);
+      addBillingRecord(newRecord);
     }
     setTotalAmount(0);
     setPaymentMethod('CASH');
@@ -106,7 +114,7 @@ const Billing = () => {
 
   // Export non-zero billing to excel
   const exportToExcel = () => {
-    const filtered = filterNonZeroBilling(patients);
+    const filtered = filterNonZeroBilling(billingRecords);
     const ws = XLSX.utils.json_to_sheet(filtered);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "BillingRecords");
@@ -121,7 +129,7 @@ const Billing = () => {
     let online = 0;
     let expenses = 0;
 
-    const filtered = filterNonZeroBilling(patients);
+    const filtered = filterNonZeroBilling(billingRecords);
 
     for (let record of filtered) {
       totalAmount += Number(record.totalAmount) || 0;
@@ -181,16 +189,17 @@ const Billing = () => {
       "Paid",
       "Due",
       "Expenses"
+      // Don't add Actions column in PDF export
     ];
-    const filtered = filterNonZeroBilling(patients);
+    const filtered = filterNonZeroBilling(billingRecords);
     const tableRows = filtered.map(r => [
       r.id,
-      r.patientName,
-      r.age,
-      r.address,
-      r.phoneNo,
-      r.treatment,
-      r.doctorId,
+      r.opdEntry?.fullName ?? '',
+      r.opdEntry?.age ?? '',
+      r.opdEntry?.address ?? '',
+      r.opdEntry?.phoneNumber ?? '',
+      r.opdEntry?.treatment ?? '',
+      r.opdEntry?.doctorId ?? '',
       r.totalAmount,
       r.paymentMethod,
       r.paidAmount,
@@ -236,8 +245,24 @@ const Billing = () => {
   // Print Handler
   const handlePrint = () => {
     if (!printTableRef.current) return;
-    const printContents = printTableRef.current.innerHTML;
+    let printContents = printTableRef.current.innerHTML;
     const totals = getTotals();
+
+    // Remove Actions column (header and body cells) for print
+    // 1. Remove Actions column from thead row
+    printContents = printContents.replace(
+      /<th[^>]*>\s*Actions\s*<\/th>/i,
+      ''
+    );
+    // 2. Remove the Actions td from each row in tbody
+    //    This regex will match a <td ...>...</td> matching class "text-center" or containing View/Edit buttons, but safest is just remove the last <td> in each row (as Actions is always last column)
+    printContents = printContents.replace(
+      /<td([^>]*)class="[^"]*text-center[^"]*"[^>]*>[\s\S]*?<\/td>/g,
+      ''
+    );
+
+    // If not matched by that, as fallback remove last td in every row in tbody (if rows have 13 cols, we want to remove last):
+    // But above should suffice for your markup.
 
     // Header HTML
     const now = new Date();
@@ -298,12 +323,12 @@ const Billing = () => {
   // Actions – view, edit, delete
 
   // --- VIEW ---
-  const handleViewPatient = (patient: PatientPayload) => {
+  const handleViewPatient = (patient: BillingPayload) => {
     setViewModalPatient(patient);
   };
 
   // --- EDIT ---
-  const openEditModal = (patient: PatientPayload) => {
+  const openEditModal = (patient: BillingPayload) => {
     setEditPatientDetails(patient)
     setEditModalPatient(true);
   };
@@ -314,18 +339,31 @@ const Billing = () => {
     if (editPatientDetails?.id) {
       // Ensure numeric billing fields are cast to numbers before sending to the API
       const updatedDetails = {
-        ...editPatientDetails,
-        totalAmount: Number(editPatientDetails.totalAmount ?? 0),
-        paidAmount: Number(editPatientDetails.paidAmount ?? 0),
-        dueAmount: Number(editPatientDetails.dueAmount ?? 0),
-        expenseAmount: Number(editPatientDetails.expenseAmount ?? 0),
+        paymentMethod: editPatientDetails.paymentMethod,
+        totalAmount: Number(editPatientDetails.totalAmount),
+        paidAmount: Number(editPatientDetails.paidAmount),
+        dueAmount: Number(editPatientDetails.dueAmount),
+        expenseAmount: Number(editPatientDetails.expenseAmount),
       };
-      updatePatient(editPatientDetails.id, updatedDetails);
+      updateBillingRecord(editPatientDetails.id, updatedDetails);
       console.log("after api");
     }
   };
 
-  const filteredBillingRecords = filterNonZeroBilling(patients);
+
+  // --- DELETE ---
+  const openDeleteModal = (id:string) => {
+    setDeleteModalPatientId(id)
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDelete = () => {
+    setIsDeleteModalOpen(false);
+    deleteBillingRecord(deleteModalPatientId);
+};
+
+
+  const filteredBillingRecords = filterNonZeroBilling(billingRecords);
 
   // Helper to render value: show '' if field is 0 and is focused, else show the value
   const renderNumberInputValue = (value: number, focused: boolean) =>
@@ -364,7 +402,7 @@ const Billing = () => {
                       onClick={() => handlePatientSelect(patient)}
                     >
                       <User size={15} className="text-blue-500" />
-                      <span className="font-medium">{patient.patientName}</span>
+                      <span className="font-medium">{patient.fullName}</span>
                       <span className="text-xs text-admin-text-muted ml-auto">{patient.id}</span>
                       <ArrowRight size={14} />
                     </li>
@@ -393,11 +431,11 @@ const Billing = () => {
             <User size={32} className="text-blue-600" />
             <div>
               <div className="font-bold text-lg text-blue-900">
-                {selectedPatient.patientName}
+                {selectedPatient.fullName}
                 <span className="text-xs font-normal text-blue-500 ml-2">({selectedPatient.id})</span>
               </div>
               <div className="text-admin-text-muted text-sm">
-                {selectedPatient.phoneNo} &#8226; Age: {selectedPatient.age} &#8226; {selectedPatient.caseType}
+                {selectedPatient.phoneNumber} &#8226; Age: {selectedPatient.age} &#8226; {selectedPatient.caseType}
               </div>
               <div className="text-admin-text-muted text-sm">
                 Address: <span className="font-semibold">{selectedPatient.address}</span> &#8226; Treatment: <span className="font-semibold">{selectedPatient.treatment}</span>
@@ -571,13 +609,13 @@ const Billing = () => {
               ) : (
                 filteredBillingRecords.map((record, idx) => (
                   <tr key={idx} className="hover:bg-blue-50 transition">
-                    <td className="py-1.5 px-3 border-b border-admin-border">{record.id}</td>
-                    <td className="py-1.5 px-3 border-b border-admin-border">{record.patientName}</td>
-                    <td className="py-1.5 px-3 border-b border-admin-border">{record.age}</td>
-                    <td className="py-1.5 px-3 border-b border-admin-border">{record.address}</td>
-                    <td className="py-1.5 px-3 border-b border-admin-border">{record.phoneNo}</td>
-                    <td className="py-1.5 px-3 border-b border-admin-border">{record.treatment}</td>
-                    <td className="py-1.5 px-3 border-b border-admin-border">{record?.doctor?.fullName}</td>
+                    <td className="py-1.5 px-3 border-b border-admin-border">{idx + 1}</td>
+                    <td className="py-1.5 px-3 border-b border-admin-border">{record.opdEntry?.fullName}</td>
+                    <td className="py-1.5 px-3 border-b border-admin-border">{record.opdEntry?.age}</td>
+                    <td className="py-1.5 px-3 border-b border-admin-border">{record.opdEntry?.address}</td>
+                    <td className="py-1.5 px-3 border-b border-admin-border">{record.opdEntry?.phoneNumber}</td>
+                    <td className="py-1.5 px-3 border-b border-admin-border">{record.opdEntry?.treatment}</td>
+                    <td className="py-1.5 px-3 border-b border-admin-border">{record?.opdEntry?.doctor?.fullName}</td>
                     <td className="py-1.5 px-3 border-b border-admin-border">{record.totalAmount}</td>
                     <td className="py-1.5 px-3 border-b border-admin-border">{record.paymentMethod}</td>
                     <td className="py-1.5 px-3 border-b border-admin-border">{record.paidAmount}</td>
@@ -601,15 +639,14 @@ const Billing = () => {
                         >
                           <Pencil size={18} />
                         </button>
-                        {/* Uncomment this block to enable deleting */}
-                        {/* <button
+                        <button
                           title="Delete"
                           type="button"
-                          onClick={() => handleDeletePatient(record.id)}
+                          onClick={() => openDeleteModal(record.id)}
                           className="p-2 text-admin-text-faint hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all cursor-pointer"
                         >
                           <Trash2 size={18} />
-                        </button> */}
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -650,30 +687,30 @@ const Billing = () => {
             <div className="px-6 py-6 overflow-y-auto grow">
               <div className="flex flex-col items-center gap-3 mb-6">
                 <User size={48} className="text-blue-500 mb-1" />
-                <div className="text-xl font-bold text-blue-900">{viewModalPatient.patientName}</div>
+                <div className="text-xl font-bold text-blue-900">{viewModalPatient.opdEntry?.fullName}</div>
                 <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-admin-text-muted">
-                  <span className="flex items-center gap-1"><Phone size={15} /> {viewModalPatient.phoneNo}</span>
-                  <span className="flex items-center gap-1"><Calendar size={15} /> {viewModalPatient.age} Yrs &bull; {viewModalPatient.caseType}</span>
-                  <span className="flex items-center gap-1"><MapPin size={15} /> {viewModalPatient.address}</span>
+                  <span className="flex items-center gap-1"><Phone size={15} /> {viewModalPatient.opdEntry?.phoneNumber}</span>
+                  <span className="flex items-center gap-1"><Calendar size={15} /> {viewModalPatient.opdEntry?.age} Yrs &bull; {viewModalPatient.opdEntry?.caseType}</span>
+                  <span className="flex items-center gap-1"><MapPin size={15} /> {viewModalPatient.opdEntry?.address}</span>
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 border-t border-admin-border-subtle pt-5">
                 <div>
                   <label className="block text-xs font-semibold text-admin-text mb-0.5">Treatment</label>
                   <div className="text-base font-medium text-admin-text">
-                    {viewModalPatient.treatment || '--'}
+                    {viewModalPatient.opdEntry?.treatment || '--'}
                   </div>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-admin-text mb-0.5">Doctor / Consultant</label>
                   <div className="text-base font-medium text-admin-text">
-                    {viewModalPatient.doctor?.fullName ?? viewModalPatient.doctorId ?? '--'}
+                    {viewModalPatient.opdEntry?.doctor?.fullName ?? viewModalPatient.opdEntry?.doctorId ?? '--'}
                   </div>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-admin-text mb-0.5">Entry Date</label>
                   <div className="text-base font-medium text-admin-text">
-                    {viewModalPatient.entryDateBs || '--'}
+                    {viewModalPatient.opdEntry?.entryDate || '--'}
                   </div>
                 </div>
                 <div>
@@ -758,7 +795,7 @@ const Billing = () => {
                   type="text"
                   id="editFullName"
                   name="editFullName"
-                  value={editPatientDetails?.patientName}
+                  value={editPatientDetails?.opdEntry?.fullName}
                   disabled
                   className="w-full px-4 py-2 border border-admin-border rounded-lg focus:outline-none focus:ring-2 focus:ring-admin-primary bg-admin-surface text-admin-text-muted"
                   placeholder="Enter full name"
@@ -773,7 +810,7 @@ const Billing = () => {
                   type="text"
                   id="editAddress"
                   name="editAddress"
-                  value={editPatientDetails?.address}
+                  value={editPatientDetails?.opdEntry?.address}
                   disabled
                   className="w-full px-4 py-2 border border-admin-border rounded-lg focus:outline-none focus:ring-2 focus:ring-admin-primary bg-admin-surface text-admin-text-muted"
                   placeholder="Enter address"
@@ -788,7 +825,7 @@ const Billing = () => {
                   type="number"
                   id="editAge"
                   name="editAge"
-                  value={editPatientDetails?.age ?? ''}
+                  value={editPatientDetails?.opdEntry?.age ?? ''}
                   disabled
                   className="w-full px-4 py-2 border border-admin-border rounded-lg focus:outline-none focus:ring-2 focus:ring-admin-primary bg-admin-surface text-admin-text-muted"
                   placeholder="Enter age"
@@ -804,7 +841,7 @@ const Billing = () => {
                   type="text"
                   id="editPhoneNo"
                   name="editPhoneNo"
-                  value={editPatientDetails?.phoneNo ?? ''}
+                  value={editPatientDetails?.opdEntry?.phoneNumber ?? ''}
                   disabled
                   className="w-full px-4 py-2 border border-admin-border rounded-lg focus:outline-none focus:ring-2 focus:ring-admin-primary bg-admin-surface text-admin-text-muted"
                   placeholder="Enter phone number"
@@ -819,7 +856,7 @@ const Billing = () => {
                   type="text"
                   id="editTreatment"
                   name="editTreatment"
-                  value={editPatientDetails?.treatment ?? ''}
+                  value={editPatientDetails?.opdEntry?.treatment ?? ''}
                   disabled
                   className="w-full px-4 py-2 border border-admin-border rounded-lg focus:outline-none focus:ring-2 focus:ring-admin-primary bg-admin-surface text-admin-text-muted"
                   placeholder="Enter treatment"
@@ -829,7 +866,7 @@ const Billing = () => {
                 <label className="admin-label">Doctor / Consultant</label>
                 <div className="relative">
                   <select
-                    value={editPatientDetails?.doctorId ?? ''}
+                    value={editPatientDetails?.opdEntry?.doctorId ?? ''}
                     disabled
                     className="admin-input appearance-none cursor-not-allowed pr-10 bg-admin-surface text-admin-text-muted"
                     required
@@ -848,7 +885,7 @@ const Billing = () => {
                 <div className="space-y-1.5">
                   <label className="admin-label">Case Type</label>
                   <select
-                    value={editPatientDetails?.caseType ?? ''}
+                    value={editPatientDetails?.opdEntry?.caseType ?? ''}
                     disabled
                     className="admin-input appearance-none cursor-not-allowed pr-10 bg-admin-surface text-admin-text-muted"
                     required
@@ -868,7 +905,7 @@ const Billing = () => {
                   type="date"
                   id="editEntryDateBs"
                   name="editEntryDateBs"
-                  value={editPatientDetails?.entryDateBs ?? ''}
+                  value={editPatientDetails?.opdEntry?.entryDate ?? ''}
                   disabled
                   className="w-full px-4 py-2 border border-admin-border rounded-lg focus:outline-none focus:ring-2 focus:ring-admin-primary bg-admin-surface text-admin-text-muted"
                   placeholder="Enter entry date (BS)"
@@ -907,6 +944,40 @@ const Billing = () => {
                   }
                   className="w-full px-4 py-2 border border-admin-border rounded-lg focus:outline-none focus:ring-2 focus:ring-admin-primary"
                   placeholder="Enter total amount"
+                />
+              </div>
+              <div>
+                <label htmlFor="editPaidAmount" className="block text-xs font-bold text-admin-text mb-1">
+                  Paid Amount
+                </label>
+                <input
+                  type="number"
+                  id="editPaidAmount"
+                  name="editPaidAmount"
+                  value={
+                    editPatientDetails && editPatientDetails.paidAmount === 0 && editPatientDetails.__paidAmountFocused
+                      ? ''
+                      : editPatientDetails?.paidAmount ?? ''
+                  }
+                  onFocus={() =>
+                    setEditPatientDetails(prev =>
+                      prev ? { ...prev, __paidAmountFocused: true } : prev
+                    )
+                  }
+                  onBlur={() =>
+                    setEditPatientDetails(prev =>
+                      prev ? { ...prev, __paidAmountFocused: false } : prev
+                    )
+                  }
+                  onChange={e =>
+                    setEditPatientDetails(prev =>
+                      prev
+                        ? { ...prev, paidAmount: Number(e.target.value) }
+                        : prev
+                    )
+                  }
+                  className="w-full px-4 py-2 border border-admin-border rounded-lg focus:outline-none focus:ring-2 focus:ring-admin-primary"
+                  placeholder="Enter paid amount"
                 />
               </div>
               <div>
@@ -1015,6 +1086,37 @@ const Billing = () => {
                 className="px-5 py-2.5 rounded-xl bg-admin-primary text-white text-xs font-black hover:bg-admin-primary-hover transition-all shadow-lg shadow-admin-primary/20"
               >
                 Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ───────────────────── DELETE MODAL ───────────────────── */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm border border-admin-border animate-fade-in">
+            <div className="px-6 py-6 text-center space-y-3">
+              <div className="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto">
+                <Trash2 size={24} className="text-rose-500" />
+              </div>
+              <h2 className="text-base font-black text-admin-text">Delete Department?</h2>
+              <p className="text-xs font-bold text-admin-text-muted">
+                Are you sure you want to delete <span className="text-admin-text">{selectedPatient?.fullName}</span>? This action cannot be undone.
+              </p>
+            </div>
+            <div className="px-6 py-4 border-t border-admin-border-subtle flex justify-end gap-3">
+              <button
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="px-5 py-2.5 rounded-xl border border-admin-border text-xs font-bold text-admin-text-muted hover:bg-admin-surface transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="px-5 py-2.5 rounded-xl bg-rose-500 text-white text-xs font-black hover:bg-rose-600 transition-all"
+              >
+                Yes, Delete
               </button>
             </div>
           </div>

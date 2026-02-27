@@ -32,7 +32,13 @@ export const createBillingService = async (data: CreateBillingInput) => {
 export const getBillingsService = async () => {
     return await prisma.billing.findMany({
         orderBy: { createdAt: 'desc' },
-        include: { opdEntry: { select: { fullName: true, regNo: true } } },
+        include: { 
+            opdEntry: { 
+                include: { 
+                    doctor: { select: { id:true, fullName: true } }
+                }
+            }
+        },
     });
 };
 

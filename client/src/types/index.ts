@@ -1,8 +1,9 @@
 export interface Doctor {
     id : string;
-    name: string;
-    dept: string;
-    phone: string;
+    fullName: string;
+    department: Department;
+    gender: string;
+    phoneNumber: string;
     email: string;
     isActive: boolean;
 }
@@ -36,8 +37,8 @@ export interface InventoryItem {
 
 export interface Department {
     id: string;
-    name: string;
-    status: boolean | undefined;
+    departmentName: string;
+    isActive: boolean;
 }
 
 export interface NavItem {
@@ -48,22 +49,29 @@ export interface NavItem {
 
 export interface PatientPayload {
     id?: string;
-    entryDateBs: string;
+    entryDate: string;
     entryMonth?: string;
     caseType: string;
-    patientName: string;
+    fullName: string;
     age: number;
+    gender:string;
     address: string;
-    phoneNo: string;
+    phoneNumber: string;
     treatment: string;
-    doctorId: string | null;
-    totalAmount?: number;
-    paymentMethod?: string;
-    dueAmount?: number;
-    paidAmount?: number;
-    expenseAmount?: number;
+    doctorId: string;
+    doctor?: Doctor
 }
 
+export interface BillingPayload{
+    id? : string;
+    opdEntryId?: string | undefined;
+    totalAmount: number;
+    paymentMethod: string;
+    dueAmount: number;
+    paidAmount: number;
+    expenseAmount: number;
+    opdEntry?: PatientPayload
+}
 
 export type PaymentOption = 'CASH' | 'ONLINE' | 'CREDIT';
 export type PaymentStatus = 'PAID' | 'PARTIAL' | 'DUE';

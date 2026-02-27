@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 
 import { useDoctorStore } from '../../../store/doctorStore';
+import type { Doctor } from '../../../types';
 
 
 const getStatusColor = (status: string) => {
@@ -28,8 +29,11 @@ const ManageDoctors: React.FC = () => {
 
     // zustand store 
     const { doctors, isLoading, fetchDoctors, deleteDoctor, updateDoctor } = useDoctorStore();
+
     const [selectedDept, setSelectedDept] = useState('All Departments');
+    const [selectGender, setSelectGender] = useState('All Gender')
     const [searchQuery, setSearchQuery] = useState('');
+    const [gender, setGender] = useState('')
 
     // Modal states
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -46,12 +50,14 @@ const ManageDoctors: React.FC = () => {
     // };
 
     const filteredDoctors = doctors?.filter(doc => {
-        const matchesDept = selectedDept === 'All Departments' || doc?.department?.name === selectedDept;
+        const matchesDept = selectedDept === 'All Departments' || doc?.department?.departmentName === selectedDept;
         const matchesSearch =
-            doc.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            doc.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             doc.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             doc.email?.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesDept && matchesSearch;
+
+        const matchGender = selectGender === 'All Gender' || doc.gender === selectGender
+        return matchesDept && matchesSearch && matchGender;
     });
 
     // Dynamic stats derived from data
@@ -64,21 +70,22 @@ const ManageDoctors: React.FC = () => {
     ];
 
     // --- EDIT ---
-    const openEditModal = (id:string, name:string, isActive:boolean) => {
-        setId(id);
-        setEditFullName(name);
-        setEditIsActive(isActive);
+    const openEditModal = (doctor:Doctor) => {
+        setId(doctor.id);
+        setEditFullName(doctor.fullName);
+        setGender(doctor.gender)
+        setEditIsActive(doctor.isActive);
 
         setIsEditModalOpen(true);
     };
 
     const handleEdit = () => {
         setIsEditModalOpen(false);
-        updateDoctor(Id, editFullName, editIsActive);
+        updateDoctor(Id, editFullName, gender, editIsActive);
     };
 
     // --- DELETE ---
-    const openDeleteModal = (id:String) => {
+    const openDeleteModal = (id: String) => {
         setId(id);
         setIsDeleteModalOpen(true);
     };
@@ -130,19 +137,7 @@ const ManageDoctors: React.FC = () => {
 
             {/* Filter & Search */}
             <div className="flex flex-col lg:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl border border-admin-border shadow-sm">
-                <div className="relative w-full lg:w-64">
-                    <select
-                        value={selectedDept}
-                        onChange={(e) => setSelectedDept(e.target.value)}
-                        className="w-full pl-4 pr-10 py-2.5 bg-admin-surface border border-admin-border rounded-xl text-xs font-bold text-admin-text focus:outline-none focus:ring-2 focus:ring-admin-primary/20 transition-all appearance-none cursor-pointer"
-                    >
-                        <option value="All Departments">All Departments</option>
-                        {doctors?.map((doctor) => (
-                            <option key={doctor?.department?.id} value={doctor?.department?.name}>{doctor?.department?.name}</option>
-                        ))}
-                    </select>
-                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-admin-text-faint pointer-events-none" size={16} />
-                </div>
+
                 <div className="relative w-full lg:w-80">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-admin-text-faint" size={16} />
                     <input
@@ -153,6 +148,32 @@ const ManageDoctors: React.FC = () => {
                         className="w-full pl-11 pr-4 py-2.5 bg-admin-surface border border-admin-border rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-admin-primary/20 transition-all"
                     />
                 </div>
+                <div className="relative w-full lg:w-64">
+                    <select
+                        value={selectedDept}
+                        onChange={(e) => setSelectedDept(e.target.value)}
+                        className="w-full pl-4 pr-10 py-2.5 bg-admin-surface border border-admin-border rounded-xl text-xs font-bold text-admin-text focus:outline-none focus:ring-2 focus:ring-admin-primary/20 transition-all appearance-none cursor-pointer"
+                    >
+                        <option value="All Departments">All Departments</option>
+                        {doctors?.map((doctor) => (
+                            <option key={doctor?.department?.id} value={doctor?.department?.departmentName}>{doctor?.department?.departmentName}</option>
+                        ))}
+                    </select>
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-admin-text-faint pointer-events-none" size={16} />
+                </div>
+                <div className="relative w-full lg:w-64">
+                    <select
+                        value={selectGender}
+                        onChange={(e) => setSelectGender(e.target.value)}
+                        className="w-full pl-4 pr-10 py-2.5 bg-admin-surface border border-admin-border rounded-xl text-xs font-bold text-admin-text focus:outline-none focus:ring-2 focus:ring-admin-primary/20 transition-all appearance-none cursor-pointer"
+                    >
+                        <option value="All Gender">All Gender</option>
+                        {/* <option key={'Male'} value={'MALE'}>MALE</option> */}
+                        <option key={'female'} value={'FEMALE'}>FEMALE</option>
+                        <option key={'others'} value={'OTHERS'}>OTHERS</option>
+                    </select>
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-admin-text-faint pointer-events-none" size={16} />
+                </div>
             </div>
 
             {/* Table Section */}
@@ -161,8 +182,10 @@ const ManageDoctors: React.FC = () => {
                     <table className="w-full border-collapse min-w-[1000px]">
                         <thead>
                             <tr className="bg-white border-b border-admin-border-subtle">
+                                <th className="px-8 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">S.no.</th>
                                 <th className="px-8 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Doctor</th>
                                 <th className="px-8 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Department</th>
+                                <th className="px-8 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Gender</th>
                                 <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Contact</th>
                                 <th className="px-6 py-5 text-center text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Active</th>
                                 <th className="px-8 py-5 text-right text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Actions</th>
@@ -182,22 +205,17 @@ const ManageDoctors: React.FC = () => {
                             ) : (
                                 filteredDoctors.map((doctor, idx) => (
                                     <tr key={idx} className="hover:bg-admin-surface/30 transition-colors">
-                                        <td className="px-8 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <img
-                                                    src={'/images/admin/default-profile.webp'}
-                                                    alt={doctor.name}
-                                                    className="w-10 cursor-pointer h-10 rounded-full object-cover ring-2 ring-white shadow-sm"
-                                                />
-                                                <div>
-                                                    <h4 className="text-sm font-bold text-admin-text">{doctor.fullName}</h4>
-                                                    <p className="text-[10px] font-bold text-admin-text-faint">ID: {doctor.id}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-
                                         <td className="px-6 py-4">
-                                            <p className="text-xs font-bold text-admin-text-muted">{doctor.department?.name}</p>
+                                            <p className="text-xs font-bold text-admin-text-muted">{idx + 1}</p>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <p className="text-xs font-bold text-admin-text-muted">{doctor.fullName}</p>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <p className="text-xs font-bold text-admin-text-muted">{doctor.department?.departmentName}</p>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <p className="text-xs font-bold text-admin-text-muted">{doctor.gender}</p>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="space-y-0.5">
@@ -216,12 +234,12 @@ const ManageDoctors: React.FC = () => {
                                         <td className="px-8 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
                                                 <button
-                                                onClick={()=>openEditModal(doctor.id, doctor.fullName, doctor.isActive)}
-                                                className="p-2 text-admin-text-faint hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer">
+                                                    onClick={() => openEditModal(doctor)}
+                                                    className="p-2 text-admin-text-faint hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer">
                                                     <Pencil size={16} />
                                                 </button>
                                                 <button
-                                                    onClick={() =>openDeleteModal(doctor.id)}
+                                                    onClick={() => openDeleteModal(doctor.id)}
                                                     className="p-2 text-admin-text-faint hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all cursor-pointer">
                                                     <Trash2 size={16} />
                                                 </button>
@@ -276,7 +294,7 @@ const ManageDoctors: React.FC = () => {
                         </div>
 
                         <div className="px-6 py-5 space-y-4">
-                           
+
                             <form className="space-y-4">
                                 <div>
                                     <label htmlFor="fullname" className="block text-xs font-bold text-admin-text mb-1">
@@ -292,6 +310,27 @@ const ManageDoctors: React.FC = () => {
                                         placeholder="Enter full name"
                                         required
                                     />
+                                </div>
+                                <div className="space-y-2 col-span-full">
+                                    <label className="admin-label">Gender</label>
+                                    <div className="flex gap-6">
+                                        {['MALE', 'FEMALE', 'OTHER'].map((option) => (
+                                            <label className="flex items-center gap-2 cursor-pointer group">
+                                                <div className="relative flex items-center justify-center">
+                                                    <input
+                                                        type="radio"
+                                                        name="gender"
+                                                        value={option}
+                                                        checked={gender === option}
+                                                        onChange={e => setGender(e.target.value)}
+                                                        className="peer appearance-none w-5 h-5 border-2 border-admin-border rounded-full checked:border-admin-primary transition-all cursor-pointer"
+                                                    />
+                                                    <div className="absolute w-2.5 h-2.5 bg-admin-primary rounded-full opacity-0 peer-checked:opacity-100 transition-opacity" />
+                                                </div>
+                                                <span className="text-base font-bold text-admin-text-muted group-hover:text-admin-text transition-colors">{option}</span>
+                                            </label>
+                                        ))}
+                                    </div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <input

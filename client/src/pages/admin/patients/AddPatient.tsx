@@ -10,6 +10,7 @@ import {
 import { Link } from 'react-router-dom';
 import { useDoctorStore } from '../../../store/doctorStore';
 import { usePatientStore } from '../../../store/patientStore';
+import type { PatientPayload } from '../../../types';
 
 const AddPatient: React.FC = () => {
 
@@ -24,20 +25,22 @@ const AddPatient: React.FC = () => {
     const [chronicConditions, setChronicConditions] = useState('');
     const [dateOfAdmission, setDateOfAdmission] = useState('');
     const [caseType, setCaseType] = useState('');
+    const [gender, setGender] = useState('')
 
-    const [doctorId, setDoctorId] = useState<string | null>(null)
+    const [doctorId, setDoctorId] = useState<string>('')
 
     const { addPatient } = usePatientStore()
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const patientData = {
-            entryDateBs: dateOfAdmission,
+        const patientData: PatientPayload = {
+            entryDate: dateOfAdmission,
+            gender: gender,
             caseType: caseType,
-            patientName: fullName,
+            fullName: fullName,
             age: parseInt(age),
             address: address,
-            phoneNo: phone,
+            phoneNumber: phone,
             treatment: chronicConditions,
             doctorId: doctorId,
         }
@@ -52,7 +55,7 @@ const AddPatient: React.FC = () => {
         setChronicConditions('');
         setDateOfAdmission('');
         setCaseType('');
-        setDoctorId(null);
+        setDoctorId('');
 
     };
 
@@ -109,23 +112,6 @@ const AddPatient: React.FC = () => {
                                     />
                                 </div>
                             </div>
-                            {/* <div className="space-y-1.5">
-                                <label className="admin-label">Gender</label>
-                                <div className="relative">
-                                    <select
-                                        value={gender}
-                                        onChange={e => setGender(e.target.value)}
-                                        className="admin-input appearance-none cursor-pointer pr-10"
-                                        
-                                    >
-                                        <option value="">Select Gender</option>
-                                        <option value="male">Male</option>
-                                        <option value="female">Female</option>
-                                        <option value="other">Other</option>
-                                    </select>
-                                    <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-admin-text-faint pointer-events-none" />
-                                </div>
-                            </div> */}
                             <div className="space-y-1.5">
                                 <label className="admin-label">Contact Number <span className='text-red-500 text-[16px]'>*</span></label>
                                 <div className="relative flex items-center">
@@ -181,6 +167,24 @@ const AddPatient: React.FC = () => {
                                     </select>
                                     <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-admin-text-faint pointer-events-none" />
                                 </div>
+                            </div>
+                            <div className="flex gap-6">
+                                {['MALE', 'FEMALE', 'OTHER'].map((option) => (
+                                    <label key={option} className="flex items-center gap-2 cursor-pointer group">
+                                        <div className="relative flex items-center justify-center">
+                                            <input
+                                                type="radio"
+                                                name="gender"
+                                                value={option}
+                                                checked={gender === option}
+                                                onChange={e => setGender(e.target.value)}
+                                                className="peer appearance-none w-5 h-5 border-2 border-admin-border rounded-full checked:border-admin-primary transition-all cursor-pointer"
+                                            />
+                                            <div className="absolute w-2.5 h-2.5 bg-admin-primary rounded-full opacity-0 peer-checked:opacity-100 transition-opacity" />
+                                        </div>
+                                        <span className="text-sm font-bold text-admin-text-muted group-hover:text-admin-text transition-colors">{option}</span>
+                                    </label>
+                                ))}
                             </div>
                         </div>
                     </div>

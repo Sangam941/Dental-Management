@@ -9,8 +9,8 @@ interface DoctorStore {
     isLoading: boolean;
     error: string | null;
     fetchDoctors: () => Promise<void>;
-    addDoctor: (fullname: string, phoneNumber: string, departmentId: string) => void;
-    updateDoctor: (id: string, fullName:string, isActive:boolean) => void;
+    addDoctor: (fullname: string, phoneNumber: string, gender:string, departmentId: string) => void;
+    updateDoctor: (id: string, fullName:string, gender:string, isActive:boolean) => void;
     deleteDoctor: (id: string) => void;
 }
 
@@ -31,10 +31,10 @@ export const useDoctorStore = create<DoctorStore>()(
                     set({isLoading:false})
                 }
             },
-            addDoctor: async (fullname, phoneNumber, departmentId) => {
+            addDoctor: async (fullname, phoneNumber, gender, departmentId) => {
                 set({isLoading:true})
                 try {
-                    const data = await createDoctor(fullname, phoneNumber, departmentId);
+                    const data = await createDoctor(fullname, phoneNumber, gender, departmentId);
                     get().fetchDoctors()
                     set((state) => ({
                         doctors: [...state.doctors, data]
@@ -48,9 +48,9 @@ export const useDoctorStore = create<DoctorStore>()(
                     set({isLoading:false})
                 }
             },
-            updateDoctor: async (id, fullName, isActive) => {
+            updateDoctor: async (id, fullName, gender, isActive) => {
                 try {
-                    const updates = await updateDoctor(id, fullName, isActive)
+                    const updates = await updateDoctor(id, fullName, gender, isActive)
                     set((state) => ({
                         doctors: state.doctors.map((doc) => doc.id === id ? { ...doc, ...updates } : doc)
                     }))

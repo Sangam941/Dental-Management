@@ -20,7 +20,7 @@ const stats = [
 ];
 
 const genders = ['All Genders', 'Male', 'Female', 'Other'];
-const ageRanges = ['All Ages', '0-18', '19-40', '41-60', '60+'];
+const ageRanges = ['All Ages', '0-9', '10-19', '20-29', '30-39', '40-49', '50-59', '60-69', '70-79', '80+'];
 
 import { DUMMY_PATIENTS as initialPatients } from '../../../data/dummyData';
 
@@ -32,7 +32,7 @@ import { useDoctorStore } from '../../../store/doctorStore';
 const Patients: React.FC = () => {
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedGender, setSelectedGender] = useState('All Genders');
+    const [selectedGender, setSelectedGender] = useState('All Gender');
     const [selectedAge, setSelectedAge] = useState('All Ages');
     const [patientList] = useState(initialPatients);
     const [Id, setId] = useState<string | undefined>('')
@@ -49,24 +49,31 @@ const Patients: React.FC = () => {
     const [editAddress, setEditAddress] = useState('');
     const [caseType, setCaseType] = useState('');
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+    const [gender, setGender] = useState('')
 
     // zustand
     const { fetchPatients, patients, updatePatient, deletePatient } = usePatientStore()
     const { doctors } = useDoctorStore()
 
     const filteredPatients = patients?.filter(patient => {
-        const matchesSearch = patient?.patientName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        const matchesSearch = patient?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             patient?.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             patient?.treatment?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            patient?.phoneNo?.includes(searchQuery);
-        const matchesGender = selectedGender === 'All Genders' || patient.gender === selectedGender;
+            patient?.phoneNumber?.includes(searchQuery);
+        const matchesGender = selectedGender === 'All Gender' || patient.gender === selectedGender;
 
         let matchesAge = true;
         if (selectedAge !== 'All Ages') {
-            if (selectedAge === '0-18') matchesAge = patient.age <= 18;
-            else if (selectedAge === '19-40') matchesAge = patient.age >= 19 && patient.age <= 40;
-            else if (selectedAge === '41-60') matchesAge = patient.age >= 41 && patient.age <= 60;
-            else if (selectedAge === '60+') matchesAge = patient.age > 60;
+            // Split the range into 10-year increments where possible
+            if (selectedAge === '0-9') matchesAge = patient.age >= 0 && patient.age <= 9;
+            else if (selectedAge === '10-19') matchesAge = patient.age >= 10 && patient.age <= 19;
+            else if (selectedAge === '20-29') matchesAge = patient.age >= 20 && patient.age <= 29;
+            else if (selectedAge === '30-39') matchesAge = patient.age >= 30 && patient.age <= 39;
+            else if (selectedAge === '40-49') matchesAge = patient.age >= 40 && patient.age <= 49;
+            else if (selectedAge === '50-59') matchesAge = patient.age >= 50 && patient.age <= 59;
+            else if (selectedAge === '60-69') matchesAge = patient.age >= 60 && patient.age <= 69;
+            else if (selectedAge === '70-79') matchesAge = patient.age >= 70 && patient.age <= 79;
+            else if (selectedAge === '80+') matchesAge = patient.age >= 80;
         }
 
         return matchesSearch && matchesGender && matchesAge;
@@ -77,15 +84,16 @@ const Patients: React.FC = () => {
     // --- EDIT ---
     const openEditModal = (patient: PatientPayload) => {
         setId(patient.id);
-        setfullname(patient.patientName);
+        setfullname(patient.fullName);
         setEditAddress(patient.address);
         setEditAge(patient.age);
-        setEditPhoneNo(patient.phoneNo);
+        setGender(patient.gender)
+        setEditPhoneNo(patient.phoneNumber);
         setEditTreatment(patient.treatment);
         setEditDoctor(patient?.doctor?.fullName);
         setDoctorId(patient.doctorId)
         setCaseType(patient.caseType);
-        setEditEntryDateBs(patient.entryDateBs);
+        setEditEntryDateBs(patient.entryDate);
 
         setIsEditModalOpen(true);
     };
@@ -93,13 +101,14 @@ const Patients: React.FC = () => {
     const handleEdit = () => {
         setIsEditModalOpen(false);
         // You should implement an updatePatient function similar to updateDoctor, passing the updated patient data.
-        const updatedData = {
-            patientName: editFullName,
+        const updatedData: PatientPayload = {
+            fullName: editFullName,
             age: editAge,
-            phoneNo: editPhoneNo,
+            phoneNumber: editPhoneNo,
+            gender: gender,
             treatment: editTreatment,
             doctorId: doctorId,
-            entryDateBs: editEntryDateBs,
+            entryDate: editEntryDateBs,
             caseType: caseType,
             address: editAddress
         }
@@ -171,13 +180,16 @@ const Patients: React.FC = () => {
                     />
                 </div>
                 <div className="flex items-center gap-3 w-full lg:w-auto">
-                    <div className="relative flex-1 lg:w-48">
+                    <div className="relative w-full lg:w-64">
                         <select
                             value={selectedGender}
                             onChange={(e) => setSelectedGender(e.target.value)}
-                            className="w-full pl-4 pr-10 py-3 bg-admin-surface border border-admin-border rounded-xl text-xs font-bold text-admin-text focus:outline-none focus:ring-2 focus:ring-admin-primary/20 transition-all appearance-none cursor-pointer"
+                            className="w-full pl-4 pr-10 py-2.5 bg-admin-surface border border-admin-border rounded-xl text-xs font-bold text-admin-text focus:outline-none focus:ring-2 focus:ring-admin-primary/20 transition-all appearance-none cursor-pointer"
                         >
-                            {genders.map(g => <option key={g} value={g}>{g}</option>)}
+                            <option value={"All Gender"}>All Gender</option>
+                            <option key={'Male'} value={'MALE'}>MALE</option>
+                            <option key={'female'} value={'FEMALE'}>FEMALE</option>
+                            <option key={'others'} value={'OTHERS'}>OTHERS</option>
                         </select>
                         <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-admin-text-faint pointer-events-none" size={16} />
                     </div>
@@ -205,7 +217,7 @@ const Patients: React.FC = () => {
                             <tr className="bg-white border-b border-admin-border-subtle">
                                 <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">ID</th>
                                 <th className="px-8 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Patient Name</th>
-                                {/* <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Gender</th> */}
+                                <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Gender</th>
                                 <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Age</th>
                                 <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Phone No.</th>
                                 <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Doctor</th>
@@ -224,21 +236,18 @@ const Patients: React.FC = () => {
                                     <td className="px-8 py-4">
                                         <div className="flex items-center gap-3">
                                             <div>
-                                                <h4 className="text-sm font-bold text-admin-text leading-tight">{patient.patientName}</h4>
+                                                <h4 className="text-sm font-bold text-admin-text leading-tight">{patient.fullName}</h4>
                                             </div>
                                         </div>
                                     </td>
-                                    {/* <td className="px-6 py-4">
-                                        <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-tight ${patient.gender === 'Female' ? 'bg-purple-50 text-purple-600' : 'bg-blue-50 text-blue-600'
-                                            }`}>
-                                            {patient.gender}
-                                        </span>
-                                    </td> */}
+                                    <td className="px-6 py-4 text-sm font-bold text-admin-text-muted">
+                                        {patient.gender}
+                                    </td>
                                     <td className="px-6 py-4 text-sm font-bold text-admin-text-muted">
                                         {patient.age}
                                     </td>
                                     <td className="px-6 py-4 text-xs font-bold text-admin-text">
-                                        {patient.phoneNo}
+                                        {patient.phoneNumber}
                                     </td>
                                     <td className="px-6 py-4 text-xs font-bold text-admin-text">
                                         {patient?.doctor?.fullName || '---'}
@@ -247,18 +256,17 @@ const Patients: React.FC = () => {
                                         {patient?.treatment}
                                     </td>
                                     <td>
-                                        <div className={`py-2 text-center border text-xs cursor-pointer font-bold rounded-full ${
-                                        patient?.caseType === 'NEW'
+                                        <div className={`py-2 text-center border text-xs cursor-pointer font-bold rounded-full ${patient?.caseType === 'NEW'
                                             ? 'bg-green-50 text-green-700 border-green-800'
                                             : patient?.caseType === 'OLD'
                                                 ? 'bg-yellow-50 text-yellow-700 border-yellow-800'
                                                 : 'text-admin-text'
-                                    }`}>
+                                            }`}>
                                             {patient?.caseType}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-xs font-bold text-admin-text">
-                                        {patient.entryDateBs}
+                                        {patient.entryDate}
                                     </td>
                                     <td className="px-8 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
@@ -375,6 +383,24 @@ const Patients: React.FC = () => {
                                         min={0}
                                         required
                                     />
+                                </div>
+                                <div className="flex gap-6">
+                                    {['MALE', 'FEMALE', 'OTHER'].map((option) => (
+                                        <label key={option} className="flex items-center gap-2 cursor-pointer group">
+                                            <div className="relative flex items-center justify-center">
+                                                <input
+                                                    type="radio"
+                                                    name="gender"
+                                                    value={option}
+                                                    checked={gender === option}
+                                                    onChange={e => setGender(e.target.value)}
+                                                    className="peer appearance-none w-5 h-5 border-2 border-admin-border rounded-full checked:border-admin-primary transition-all cursor-pointer"
+                                                />
+                                                <div className="absolute w-2.5 h-2.5 bg-admin-primary rounded-full opacity-0 peer-checked:opacity-100 transition-opacity" />
+                                            </div>
+                                            <span className="text-sm font-bold text-admin-text-muted group-hover:text-admin-text transition-colors">{option}</span>
+                                        </label>
+                                    ))}
                                 </div>
                                 <div>
                                     <label htmlFor="editPhoneNo" className="block text-xs font-bold text-admin-text mb-1">

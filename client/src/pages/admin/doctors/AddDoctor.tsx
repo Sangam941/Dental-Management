@@ -17,17 +17,16 @@ const AddDoctor: React.FC = () => {
     // Individual form states
     const [fullName, setFullName] = useState('');
     const [phone, setPhone] = useState('');
-    const [gender, setGender] = useState('male');
+    const [gender, setGender] = useState('MALE');
     const [specialty, setSpecialty] = useState('');
     const [deptId, setDeptId] = useState('')
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        addDoctor(fullName, phone, deptId);
+        addDoctor(fullName, phone, gender, deptId);
         setFullName('');
         setPhone('');
         setSpecialty('');
-        // Add form submission logic here
     };
     
 
@@ -93,7 +92,7 @@ const AddDoctor: React.FC = () => {
                                 onChange={e => {
                                     setSpecialty(e.target.value);
                                     // Find the department by name to get its id
-                                    const selectedDept = departments.find(dept => dept.name === e.target.value);
+                                    const selectedDept = departments.find(dept => dept.departmentName === e.target.value);
                                     if (selectedDept) {
                                         setDeptId(selectedDept.id)
                                     }
@@ -103,21 +102,21 @@ const AddDoctor: React.FC = () => {
                             >
                                 <option value="">Select Specialty</option>
                                 {departments.map((dept) => (
-                                    <option key={dept.id} value={dept.name}>{dept.name}</option>
+                                    <option key={dept.id} value={dept.departmentName}>{dept.departmentName}</option>
                                 ))}
                             </select>
                             </div>
                         <div className="space-y-2 col-span-full">
                             <label className="admin-label">Gender</label>
                             <div className="flex gap-6">
-                                {['Male', 'Female', 'Other'].map((option) => (
+                                {['MALE', 'FEMALE', 'OTHER'].map((option) => (
                                     <label key={option} className="flex items-center gap-2 cursor-pointer group">
                                         <div className="relative flex items-center justify-center">
                                             <input
                                                 type="radio"
                                                 name="gender"
-                                                value={option.toLowerCase()}
-                                                checked={gender === option.toLowerCase()}
+                                                value={option}
+                                                checked={gender === option}
                                                 onChange={e => setGender(e.target.value)}
                                                 className="peer appearance-none w-5 h-5 border-2 border-admin-border rounded-full checked:border-admin-primary transition-all cursor-pointer"
                                             />

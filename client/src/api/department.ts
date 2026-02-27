@@ -2,26 +2,20 @@ import api from './axios';
 
 export const getDepartments = async () => {
     const data = await api.get('/departments');
-    console.log(data.data.departments);
+    // console.log(data.data.departments);
     return data.data.departments;
 };
 
-export const getDepartment = async (id: string) => {
-    const data = await api.get(`/departments/${id}`);
-    console.log(data)
-    return data;
-};
-
-export const createDepartment = async (name: string) => {
-    const data = await api.post('/departments', { name });
-    console.log(data)
+export const createDepartment = async (departmentName: string) => {
+    const data = await api.post('/departments', { departmentName });
+    // console.log(data)
     return data;
 };
 
 
-export const updateDepartment = async (id: string, name: string, isActive: boolean) => {
-    const data = await api.patch(`/departments/${id}`, {name, isActive});
-    console.log(data)
+export const updateDepartment = async (id: string, departmentName: string, isActive: boolean) => {
+    const data = await api.patch(`/departments/${id}`, {departmentName, isActive});
+    // console.log(data)
     return data;
 };
 

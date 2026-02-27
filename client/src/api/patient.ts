@@ -1,19 +1,16 @@
 import api from './axios';
 
 interface CasePayload {
-    entryDateBs: string;
+    entryDate: string;
     entryMonth?: string;
     caseType: string;
-    patientName: string;
+    fullName: string;
     age: number;
+    gender: string;
     address: string;
-    phoneNo: string;
+    phoneNumber: string;
     treatment: string;
     doctorId: string | null;
-    totalAmount?: number;
-    paymentMethod?: string;
-    paidAmount?: number;
-    expenseAmount?: number;
 }
 
 export const getAllEntry = async () => {
