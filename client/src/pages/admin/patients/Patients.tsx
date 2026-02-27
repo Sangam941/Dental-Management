@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Search,
     Plus,
@@ -25,6 +25,9 @@ const ageRanges = ['All Ages', '0-18', '19-40', '41-60', '60+'];
 import { DUMMY_PATIENTS as initialPatients } from '../../../data/dummyData';
 
 import { useNavigate } from 'react-router-dom';
+import { usePatientStore } from '../../../store/patientStore';
+import type { PatientPayload } from '../../../types';
+import { useDoctorStore } from '../../../store/doctorStore';
 
 const Patients: React.FC = () => {
     const navigate = useNavigate();
@@ -32,12 +35,30 @@ const Patients: React.FC = () => {
     const [selectedGender, setSelectedGender] = useState('All Genders');
     const [selectedAge, setSelectedAge] = useState('All Ages');
     const [patientList] = useState(initialPatients);
+    const [Id, setId] = useState<string | undefined>('')
+    const [doctorId, setDoctorId] = useState<string>('')
 
-    const filteredPatients = patientList.filter(patient => {
-        const matchesSearch = patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            patient.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            patient.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            patient.phone.includes(searchQuery);
+    //edit states
+    const [editFullName, setfullname] = useState('');
+    const [editAge, setEditAge] = useState(0);
+    const [editPhoneNo, setEditPhoneNo] = useState('');
+    const [editTreatment, setEditTreatment] = useState('');
+    const [editDoctor, setEditDoctor] = useState<any>(null);
+    const [editEntryDateBs, setEditEntryDateBs] = useState('');
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editAddress, setEditAddress] = useState('');
+    const [caseType, setCaseType] = useState('');
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+
+    // zustand
+    const { fetchPatients, patients, updatePatient, deletePatient } = usePatientStore()
+    const { doctors } = useDoctorStore()
+
+    const filteredPatients = patients?.filter(patient => {
+        const matchesSearch = patient?.patientName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            patient?.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            patient?.treatment?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            patient?.phoneNo?.includes(searchQuery);
         const matchesGender = selectedGender === 'All Genders' || patient.gender === selectedGender;
 
         let matchesAge = true;
@@ -50,6 +71,58 @@ const Patients: React.FC = () => {
 
         return matchesSearch && matchesGender && matchesAge;
     });
+
+
+
+    // --- EDIT ---
+    const openEditModal = (patient: PatientPayload) => {
+        setId(patient.id);
+        setfullname(patient.patientName);
+        setEditAddress(patient.address);
+        setEditAge(patient.age);
+        setEditPhoneNo(patient.phoneNo);
+        setEditTreatment(patient.treatment);
+        setEditDoctor(patient?.doctor?.fullName);
+        setDoctorId(patient.doctorId)
+        setCaseType(patient.caseType);
+        setEditEntryDateBs(patient.entryDateBs);
+
+        setIsEditModalOpen(true);
+    };
+
+    const handleEdit = () => {
+        setIsEditModalOpen(false);
+        // You should implement an updatePatient function similar to updateDoctor, passing the updated patient data.
+        const updatedData = {
+            patientName: editFullName,
+            age: editAge,
+            phoneNo: editPhoneNo,
+            treatment: editTreatment,
+            doctorId: doctorId,
+            entryDateBs: editEntryDateBs,
+            caseType: caseType,
+            address:editAddress
+        }
+
+        updatePatient(Id, updatedData)
+
+    };
+
+    // --- DELETE ---
+    const openDeleteModal = (id: String) => {
+        setId(id);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleDelete = () => {
+        setIsDeleteModalOpen(false);
+        deletePatient(Id);
+    };
+
+
+    useEffect(() => {
+        fetchPatients()
+    }, [])
 
     return (
         <div className="p-6 lg:p-10 max-w-[1600px] mx-auto space-y-8 bg-admin-bg min-h-screen">
@@ -130,56 +203,66 @@ const Patients: React.FC = () => {
                     <table className="w-full border-collapse min-w-[1000px]">
                         <thead>
                             <tr className="bg-white border-b border-admin-border-subtle">
-                                <th className="px-8 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Patient Name</th>
                                 <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">ID</th>
-                                <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Gender</th>
+                                <th className="px-8 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Patient Name</th>
+                                {/* <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Gender</th> */}
                                 <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Age</th>
                                 <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Phone No.</th>
                                 <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Doctor</th>
                                 <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Treatment</th>
+                                <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Entry Date</th>
                                 <th className="px-8 py-5 text-right text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-admin-border-subtle">
                             {filteredPatients.map((patient, idx) => (
                                 <tr key={idx} className="hover:bg-admin-surface/30 transition-colors">
-                                    <td className="px-8 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div>
-                                                <h4 className="text-sm font-bold text-admin-text leading-tight">{patient.name}</h4>
-                                            </div>
-                                        </div>
-                                    </td>
                                     <td className="px-6 py-4">
                                         <p className="text-xs font-bold text-admin-text-muted">{patient.id}</p>
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-8 py-4">
+                                        <div className="flex items-center gap-3">
+                                            <div>
+                                                <h4 className="text-sm font-bold text-admin-text leading-tight">{patient.patientName}</h4>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    {/* <td className="px-6 py-4">
                                         <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-tight ${patient.gender === 'Female' ? 'bg-purple-50 text-purple-600' : 'bg-blue-50 text-blue-600'
                                             }`}>
                                             {patient.gender}
                                         </span>
-                                    </td>
+                                    </td> */}
                                     <td className="px-6 py-4 text-sm font-bold text-admin-text-muted">
                                         {patient.age}
                                     </td>
                                     <td className="px-6 py-4 text-xs font-bold text-admin-text">
-                                        {patient.phone}
+                                        {patient.phoneNo}
                                     </td>
                                     <td className="px-6 py-4 text-xs font-bold text-admin-text">
-                                        {patient.phone}
+                                        {patient?.doctor?.fullName || '---'}
                                     </td>
                                     <td className="px-6 py-4 text-xs font-bold text-admin-text">
-                                        {patient.phone}
+                                        {patient?.treatment}
+                                    </td>
+                                    <td className="px-6 py-4 text-xs font-bold text-admin-text">
+                                        {patient.entryDateBs}
                                     </td>
                                     <td className="px-8 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            <button className="p-2 text-admin-text-faint hover:text-admin-primary hover:bg-blue-50 rounded-xl transition-all cursor-pointer">
+                                            <button
+                                                onClick={() => openEditModal(patient)}
+                                                className="p-2 text-admin-text-faint hover:text-admin-primary hover:bg-blue-50 rounded-xl transition-all cursor-pointer">
                                                 <Eye size={18} />
                                             </button>
-                                            <button className="p-2 text-admin-text-faint hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer">
+                                            <button
+                                                onClick={() => openEditModal(patient)}
+                                                className="p-2 text-admin-text-faint hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer">
                                                 <Pencil size={18} />
                                             </button>
-                                            <button className="p-2 text-admin-text-faint hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all cursor-pointer">
+                                            <button
+                                                onClick={() => openDeleteModal(patient.id)}
+                                                className="p-2 text-admin-text-faint hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all cursor-pointer">
                                                 <Trash2 size={18} />
                                             </button>
                                         </div>
@@ -205,8 +288,225 @@ const Patients: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* ───────────────────── EDIT MODAL ───────────────────── */}
+            {isEditModalOpen && (
+                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                    <div
+                        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-admin-border animate-fade-in flex flex-col"
+                        style={{ maxHeight: '80%' }}
+                    >
+                        <div className="flex items-center justify-between px-6 py-5 border-b border-admin-border-subtle shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-blue-50 rounded-xl">
+                                    <Pencil size={20} className="text-admin-primary" />
+                                </div>
+                                <div>
+                                    <h2 className="text-base font-black text-admin-text">Edit Patient</h2>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setIsEditModalOpen(false)}
+                                className="p-2 text-admin-text-faint hover:text-admin-text hover:bg-admin-surface rounded-xl transition-all"
+                                aria-label="Close Edit Modal"
+                            >
+                                <span className="sr-only">Close</span>
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <path d="M6 6L14 14M6 14L14 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="px-6 py-5 space-y-4 overflow-y-auto grow">
+                            <form className="space-y-4" onSubmit={e => { e.preventDefault(); handleEdit(); }}>
+                                <div>
+                                    <label htmlFor="fullname" className="block text-xs font-bold text-admin-text mb-1">
+                                        Full Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="fullname"
+                                        name="fullname"
+                                        value={editFullName}
+                                        onChange={e => setfullname(e.target.value)}
+                                        className="w-full px-4 py-2 border border-admin-border rounded-lg focus:outline-none focus:ring-2 focus:ring-admin-primary"
+                                        placeholder="Enter full name"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="address" className="block text-xs font-bold text-admin-text mb-1">
+                                        Address
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="address"
+                                        name="address"
+                                        value={editAddress}
+                                        onChange={e => setEditAddress(e.target.value)}
+                                        className="w-full px-4 py-2 border border-admin-border rounded-lg focus:outline-none focus:ring-2 focus:ring-admin-primary"
+                                        placeholder="Enter full name"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="editAge" className="block text-xs font-bold text-admin-text mb-1">
+                                        Age
+                                    </label>
+                                    <input
+                                        type="number"
+                                        id="editAge"
+                                        name="editAge"
+                                        value={editAge}
+                                        onChange={e => setEditAge(Number(e.target.value))}
+                                        className="w-full px-4 py-2 border border-admin-border rounded-lg focus:outline-none focus:ring-2 focus:ring-admin-primary"
+                                        placeholder="Enter age"
+                                        min={0}
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="editPhoneNo" className="block text-xs font-bold text-admin-text mb-1">
+                                        Phone Number
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="editPhoneNo"
+                                        name="editPhoneNo"
+                                        value={editPhoneNo}
+                                        onChange={e => setEditPhoneNo(e.target.value)}
+                                        className="w-full px-4 py-2 border border-admin-border rounded-lg focus:outline-none focus:ring-2 focus:ring-admin-primary"
+                                        placeholder="Enter phone number"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="editTreatment" className="block text-xs font-bold text-admin-text mb-1">
+                                        Treatment
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="editTreatment"
+                                        name="editTreatment"
+                                        value={editTreatment}
+                                        onChange={e => setEditTreatment(e.target.value)}
+                                        className="w-full px-4 py-2 border border-admin-border rounded-lg focus:outline-none focus:ring-2 focus:ring-admin-primary"
+                                        placeholder="Enter treatment"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="admin-label">Doctor / Consultant</label>
+                                    <div className="relative">
+                                        <select
+                                            value={editDoctor}
+                                            onChange={e => {
+                                                setEditDoctor(e.target.value);
+                                                // Find the department by name to get its id
+                                                const selectedDoc = doctors?.find(doctor => doctor.fullName === e.target.value);
+                                                if (selectedDoc) {
+                                                    setDoctorId(selectedDoc?.id);
+                                                }
+                                            }}
+                                            className="admin-input appearance-none cursor-pointer pr-10"
+                                            required
+                                        >
+                                            <option value="">Select attending doctor</option>
+                                            {doctors?.map((doctor, idx) => {
+                                                return (
+                                                    <option key={idx} value={doctor.fullName}>{doctor.fullName}</option>
+                                                )
+                                            })}
+                                        </select>
+                                        <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-admin-text-faint pointer-events-none" />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 gap-8">
+                                    <div className="space-y-1.5">
+                                        <label className="admin-label">Case Type</label>
+                                        <select
+                                            value={caseType}
+                                            onChange={e => setCaseType(e.target.value)}
+                                            className="admin-input appearance-none cursor-pointer pr-10"
+                                            required
+                                        >
+                                            <option value="">Select case type</option>
+                                            <option value="NEW">NEW</option>
+                                            <option value="OLD">OLD</option>
+                                        </select>
+                                        <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-admin-text-faint pointer-events-none" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label htmlFor="editEntryDateBs" className="block text-xs font-bold text-admin-text mb-1">
+                                        Entry Date
+                                    </label>
+                                    <input
+                                        type="date"
+                                        id="editEntryDateBs"
+                                        name="editEntryDateBs"
+                                        value={editEntryDateBs}
+                                        onChange={e => setEditEntryDateBs(e.target.value)}
+                                        className="w-full px-4 py-2 border border-admin-border rounded-lg focus:outline-none focus:ring-2 focus:ring-admin-primary"
+                                        placeholder="Enter entry date (BS)"
+                                    />
+                                </div>
+                            </form>
+                        </div>
+                        <div className="px-6 py-4 border-t border-admin-border-subtle flex justify-end gap-3 shrink-0">
+                            <button
+                                type="button"
+                                onClick={() => setIsEditModalOpen(false)}
+                                className="px-5 py-2.5 rounded-xl border border-admin-border text-xs font-bold text-admin-text-muted hover:bg-admin-surface transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleEdit}
+                                className="px-5 py-2.5 rounded-xl bg-admin-primary text-white text-xs font-black hover:bg-admin-primary-hover transition-all shadow-lg shadow-admin-primary/20"
+                            >
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ───────────────────── DELETE MODAL ───────────────────── */}
+            {isDeleteModalOpen && (
+                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm border border-admin-border animate-fade-in">
+                        <div className="px-6 py-6 text-center space-y-3">
+                            <div className="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto">
+                                <Trash2 size={24} className="text-rose-500" />
+                            </div>
+                            <h2 className="text-base font-black text-admin-text">Delete Patient?</h2>
+                            <p className="text-xs font-bold text-admin-text-muted">
+                                Are you sure you want to delete this patient? This action cannot be undone.
+                            </p>
+                        </div>
+                        <div className="px-6 py-4 border-t border-admin-border-subtle flex justify-end gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setIsDeleteModalOpen(false)}
+                                className="px-5 py-2.5 rounded-xl border border-admin-border text-xs font-bold text-admin-text-muted hover:bg-admin-surface transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleDelete}
+                                className="px-5 py-2.5 rounded-xl bg-rose-500 text-white text-xs font-black hover:bg-rose-600 transition-all"
+                            >
+                                Yes, Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
-    );
-};
+    )
+}
+
 
 export default Patients;
