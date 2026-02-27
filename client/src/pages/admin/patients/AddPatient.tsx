@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useDoctorStore } from '../../../store/doctorStore';
+import { usePatientStore } from '../../../store/patientStore';
 
 const AddPatient: React.FC = () => {
 
@@ -16,17 +17,43 @@ const AddPatient: React.FC = () => {
     // Individual form states
     const [fullName, setFullName] = useState('');
     const [age, setAge] = useState('');
-    const [gender, setGender] = useState('');
+    // const [gender, setGender] = useState('');
     const [phone, setPhone] = useState('');
     const [address, setAddress] = useState('');
     const [doctorName, setDoctorName] = useState('')
     const [chronicConditions, setChronicConditions] = useState('');
+    const [dateOfAdmission, setDateOfAdmission] = useState('');
+    const [caseType, setCaseType] = useState('');
 
-    const [doctorId, setDoctorId] = useState<string>('')
+    const [doctorId, setDoctorId] = useState<string | null>(null)
+
+    const { addPatient } = usePatientStore()
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        
+        const patientData = {
+            entryDateBs: dateOfAdmission,
+            caseType: caseType,
+            patientName: fullName,
+            age: parseInt(age),
+            address: address,
+            phoneNo: phone,
+            treatment: chronicConditions,
+            doctorId: doctorId,
+        }
+
+        addPatient(patientData)
+
+        setFullName('');
+        setAge('');
+        setPhone('');
+        setAddress('');
+        setDoctorName('');
+        setChronicConditions('');
+        setDateOfAdmission('');
+        setCaseType('');
+        setDoctorId(null);
+
     };
 
     return (
@@ -82,7 +109,7 @@ const AddPatient: React.FC = () => {
                                     />
                                 </div>
                             </div>
-                            <div className="space-y-1.5">
+                            {/* <div className="space-y-1.5">
                                 <label className="admin-label">Gender</label>
                                 <div className="relative">
                                     <select
@@ -98,7 +125,7 @@ const AddPatient: React.FC = () => {
                                     </select>
                                     <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-admin-text-faint pointer-events-none" />
                                 </div>
-                            </div>
+                            </div> */}
                             <div className="space-y-1.5">
                                 <label className="admin-label">Contact Number <span className='text-red-500 text-[16px]'>*</span></label>
                                 <div className="relative flex items-center">
@@ -127,6 +154,34 @@ const AddPatient: React.FC = () => {
                                     />
                                 </div>
                             </div>
+                            <div className="grid grid-cols-1 gap-8">
+                                <div className="space-y-1.5">
+                                    <label className="admin-label">Date of Admission</label>
+                                    <input
+                                        type="date"
+                                        value={dateOfAdmission}
+                                        onChange={e => setDateOfAdmission(e.target.value)}
+                                        className="admin-input"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 gap-8">
+                                <div className="space-y-1.5">
+                                    <label className="admin-label">Case Type</label>
+                                    <select
+                                        value={caseType}
+                                        onChange={e => setCaseType(e.target.value)}
+                                        className="admin-input appearance-none cursor-pointer pr-10"
+                                        required
+                                    >
+                                        <option value="">Select case type</option>
+                                        <option value="NEW">NEW</option>
+                                        <option value="OLD">OLD</option>
+                                    </select>
+                                    <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-admin-text-faint pointer-events-none" />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -147,7 +202,7 @@ const AddPatient: React.FC = () => {
                                         onChange={e => {
                                             setDoctorName(e.target.value);
                                             // Find the department by name to get its id
-                                            const selectedDoc = doctors?.find(doctor => doctor.name === e.target.value);
+                                            const selectedDoc = doctors?.find(doctor => doctor.fullName === e.target.value);
                                             if (selectedDoc) {
                                                 setDoctorId(selectedDoc?.id);
                                             }
@@ -156,8 +211,8 @@ const AddPatient: React.FC = () => {
                                         required
                                     >
                                         <option value="">Select attending doctor</option>
-                                        {doctors?.map((doctor,idx)=>{
-                                            return(
+                                        {doctors?.map((doctor, idx) => {
+                                            return (
                                                 <option key={idx} value={doctor.fullName}>{doctor.fullName}</option>
                                             )
                                         })}
@@ -169,7 +224,7 @@ const AddPatient: React.FC = () => {
                             <div className="space-y-1.5">
                                 <label className="admin-label">treatment / diagnosis</label>
                                 <input
-                                type='text'
+                                    type='text'
                                     value={chronicConditions}
                                     onChange={e => setChronicConditions(e.target.value)}
                                     placeholder="Brief description of treatment"

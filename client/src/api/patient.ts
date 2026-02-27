@@ -1,33 +1,36 @@
 import api from './axios';
 
-export interface CasePayload {
-    caseType: "NEW" | "FOLLOW_UP" | string; // expand as per use case
+interface CasePayload {
+    entryDateBs: string;
+    entryMonth?: string;
+    caseType: string;
     patientName: string;
     age: number;
     address: string;
     phoneNo: string;
     treatment: string;
-    doctorId: string;
+    doctorId: string | null;
+    totalAmount?: number;
+    paymentMethod?: string;
+    paidAmount?: number;
+    expenseAmount?: number;
 }
 
-export const getPatients = async () => {
-    const data = await api.get('/patients');
-    console.log(data.data.patients);
-    return data.data.patients;
+export const getAllEntry = async () => {
+    const data = await api.get('/opd-entries');
+    return data.data.entries;
 };
 
-export const createPatient = async (payload:CasePayload) => {
-    const data = await api.post('/patients', payload);
-    console.log(data.data.patient)
-    return data.data.patient;
+export const createOPDEntry = async (payload:CasePayload) => {
+    const data = await api.post('/opd-entries', payload);
+    return data.data.entry;
 };
 
-export const updatePatient = async (id: string, fullName: string, isActive: boolean) => {
-    const data = await api.patch(`/patients/${id}`, { fullName, isActive });
-    console.log("updated data::", data.data.patient)
-    return data.data.patient;
+export const updateOPDEntry = async (entryId: string, payload:CasePayload) => {
+    const data = await api.patch(`/opd-entries/${entryId}`, payload);
+    return data.data.entry;
 };
 
-export const deletePatientApi = async (id: string) => {
-    await api.delete(`/patients/${id}`);
+export const deletePatient = async (entryId: string) => {
+    await api.delete(`/opd-entries/${entryId}`);
 };

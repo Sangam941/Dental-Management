@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { Doctor } from '../types';
 import { createDoctor, deleteDoctorApi, getDoctors, updateDoctor } from '../api/doctor';
 import toast from 'react-hot-toast';
+import { persist } from 'zustand/middleware';
 
 interface DoctorStore {
     doctors: Doctor[];
@@ -11,14 +12,11 @@ interface DoctorStore {
     addDoctor: (fullname: string, phoneNumber: string, departmentId: string) => void;
     updateDoctor: (id: string, fullName:string, isActive:boolean) => void;
     deleteDoctor: (id: string) => void;
-    toggleStatus: (id: string) => void;
 }
-
-import { persist } from 'zustand/middleware';
 
 export const useDoctorStore = create<DoctorStore>()(
     persist(
-        (set) => ({
+        (set, get) => ({
             doctors: [],
             isLoading: false,
             error: null,
@@ -37,6 +35,7 @@ export const useDoctorStore = create<DoctorStore>()(
                 set({isLoading:true})
                 try {
                     const data = await createDoctor(fullname, phoneNumber, departmentId);
+                    get().fetchDoctors()
                     set((state) => ({
                         doctors: [...state.doctors, data]
                     }));
@@ -55,6 +54,7 @@ export const useDoctorStore = create<DoctorStore>()(
                     set((state) => ({
                         doctors: state.doctors.map((doc) => doc.id === id ? { ...doc, ...updates } : doc)
                     }))
+                    get().fetchDoctors()
                     toast.success("Doctor updated successfully")
                 } catch (error) {
                     toast.error("Failed to update doctor")
@@ -66,16 +66,12 @@ export const useDoctorStore = create<DoctorStore>()(
                     set((state) => ({
                         doctors: state.doctors.filter((doc) => doc.id !== id)
                     }))
+                    get().fetchDoctors()
                     toast.success("Doctor deleted successfully")
                 } catch (error) {
                     toast.error("Failed to delete doctor")
                 }
             },
-            toggleStatus: (id) => set((state) => ({
-                doctors: state.doctors.map((doc) =>
-                    doc.id === id ? { ...doc, isActive: !doc.isActive, status: doc.isActive ? 'Off Duty' : 'On Duty' } : doc
-                )
-            })),
         }),
         {
             name: 'doctor-store', // unique name
@@ -85,4 +81,3 @@ export const useDoctorStore = create<DoctorStore>()(
         }
     )
 );
-

@@ -1,12 +1,3 @@
-export interface Patient {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    gender: string;
-    age: number;
-}
-
 export interface Doctor {
     id : string;
     name: string;
@@ -53,6 +44,26 @@ export interface NavItem {
     label: string;
     href: string;
 }
+
+
+export interface PatientPayload {
+    id?: string;
+    entryDateBs: string;
+    entryMonth?: string;
+    caseType: string;
+    patientName: string;
+    age: number;
+    address: string;
+    phoneNo: string;
+    treatment: string;
+    doctorId: string | null;
+    totalAmount?: number;
+    paymentMethod?: string;
+    dueAmount?: number;
+    paidAmount?: number;
+    expenseAmount?: number;
+}
+
 
 export type PaymentOption = 'CASH' | 'ONLINE' | 'CREDIT';
 export type PaymentStatus = 'PAID' | 'PARTIAL' | 'DUE';
