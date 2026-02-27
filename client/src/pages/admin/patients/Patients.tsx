@@ -101,7 +101,7 @@ const Patients: React.FC = () => {
             doctorId: doctorId,
             entryDateBs: editEntryDateBs,
             caseType: caseType,
-            address:editAddress
+            address: editAddress
         }
 
         updatePatient(Id, updatedData)
@@ -210,6 +210,7 @@ const Patients: React.FC = () => {
                                 <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Phone No.</th>
                                 <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Doctor</th>
                                 <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Treatment</th>
+                                <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Case Type</th>
                                 <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Entry Date</th>
                                 <th className="px-8 py-5 text-right text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Actions</th>
                             </tr>
@@ -218,7 +219,7 @@ const Patients: React.FC = () => {
                             {filteredPatients.map((patient, idx) => (
                                 <tr key={idx} className="hover:bg-admin-surface/30 transition-colors">
                                     <td className="px-6 py-4">
-                                        <p className="text-xs font-bold text-admin-text-muted">{patient.id}</p>
+                                        <p className="text-xs font-bold text-admin-text-muted">{idx + 1}</p>
                                     </td>
                                     <td className="px-8 py-4">
                                         <div className="flex items-center gap-3">
@@ -244,6 +245,17 @@ const Patients: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4 text-xs font-bold text-admin-text">
                                         {patient?.treatment}
+                                    </td>
+                                    <td>
+                                        <div className={`py-2 text-center border text-xs cursor-pointer font-bold rounded-full ${
+                                        patient?.caseType === 'NEW'
+                                            ? 'bg-green-50 text-green-700 border-green-800'
+                                            : patient?.caseType === 'OLD'
+                                                ? 'bg-yellow-50 text-yellow-700 border-yellow-800'
+                                                : 'text-admin-text'
+                                    }`}>
+                                            {patient?.caseType}
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4 text-xs font-bold text-admin-text">
                                         {patient.entryDateBs}

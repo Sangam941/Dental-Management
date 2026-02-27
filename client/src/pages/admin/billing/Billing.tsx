@@ -36,6 +36,12 @@ const Billing = () => {
   const [dueAmount, setDueAmount] = useState<number>(0);
   const [expenseAmount, setExpenseAmount] = useState<number>(0);
 
+  // Track input focus state to blank out default zero
+  const [totalAmountFocused, setTotalAmountFocused] = useState(false);
+  const [paidAmountFocused, setPaidAmountFocused] = useState(false);
+  const [dueAmountFocused, setDueAmountFocused] = useState(false);
+  const [expenseAmountFocused, setExpenseAmountFocused] = useState(false);
+
   // Modals for actions
   const [editModalPatient, setEditModalPatient] = useState<boolean>(false);
   const [editPatientDetails, setEditPatientDetails] = useState<PatientPayload | null>(null);
@@ -321,6 +327,10 @@ const Billing = () => {
 
   const filteredBillingRecords = filterNonZeroBilling(patients);
 
+  // Helper to render value: show '' if field is 0 and is focused, else show the value
+  const renderNumberInputValue = (value: number, focused: boolean) =>
+    focused && value === 0 ? '' : value;
+
   return (
     <div className="px-8 py-2 max-w-[1100px] mx-auto space-y-10 pb-12">
       {/* Header */}
@@ -418,7 +428,9 @@ const Billing = () => {
               <label className="admin-label mb-1.5 block">Total Amount</label>
               <input
                 type="number"
-                value={totalAmount}
+                value={renderNumberInputValue(totalAmount, totalAmountFocused)}
+                onFocus={() => setTotalAmountFocused(true)}
+                onBlur={() => setTotalAmountFocused(false)}
                 onChange={e => setTotalAmount(Number(e.target.value))}
                 placeholder="Enter total"
                 className="admin-input"
@@ -443,7 +455,9 @@ const Billing = () => {
               <label className="admin-label mb-1.5 block">Paid Amount</label>
               <input
                 type="number"
-                value={paidAmount}
+                value={renderNumberInputValue(paidAmount, paidAmountFocused)}
+                onFocus={() => setPaidAmountFocused(true)}
+                onBlur={() => setPaidAmountFocused(false)}
                 onChange={e => setPaidAmount(Number(e.target.value))}
                 placeholder="Paid amount"
                 className="admin-input"
@@ -454,7 +468,9 @@ const Billing = () => {
               <label className="admin-label mb-1.5 block">Due Amount</label>
               <input
                 type="number"
-                value={dueAmount}
+                value={renderNumberInputValue(dueAmount, dueAmountFocused)}
+                onFocus={() => setDueAmountFocused(true)}
+                onBlur={() => setDueAmountFocused(false)}
                 onChange={e => setDueAmount(Number(e.target.value))}
                 placeholder="Due amount"
                 className="admin-input"
@@ -465,7 +481,9 @@ const Billing = () => {
               <label className="admin-label mb-1.5 block">Expenses</label>
               <input
                 type="number"
-                value={expenseAmount}
+                value={renderNumberInputValue(expenseAmount, expenseAmountFocused)}
+                onFocus={() => setExpenseAmountFocused(true)}
+                onBlur={() => setExpenseAmountFocused(false)}
                 onChange={e => setExpenseAmount(Number(e.target.value))}
                 placeholder="Expenses"
                 className="admin-input"
@@ -865,7 +883,21 @@ const Billing = () => {
                   type="number"
                   id="editTotalAmount"
                   name="editTotalAmount"
-                  value={editPatientDetails?.totalAmount ?? ''}
+                  value={
+                    editPatientDetails && editPatientDetails.totalAmount === 0 && editPatientDetails.__totalAmountFocused
+                      ? ''
+                      : editPatientDetails?.totalAmount ?? ''
+                  }
+                  onFocus={() =>
+                    setEditPatientDetails(prev =>
+                      prev ? { ...prev, __totalAmountFocused: true } : prev
+                    )
+                  }
+                  onBlur={() =>
+                    setEditPatientDetails(prev =>
+                      prev ? { ...prev, __totalAmountFocused: false } : prev
+                    )
+                  }
                   onChange={e =>
                     setEditPatientDetails(prev =>
                       prev
@@ -885,7 +917,21 @@ const Billing = () => {
                   type="number"
                   id="editDueAmount"
                   name="editDueAmount"
-                  value={editPatientDetails?.dueAmount ?? ''}
+                  value={
+                    editPatientDetails && editPatientDetails.dueAmount === 0 && editPatientDetails.__dueAmountFocused
+                      ? ''
+                      : editPatientDetails?.dueAmount ?? ''
+                  }
+                  onFocus={() =>
+                    setEditPatientDetails(prev =>
+                      prev ? { ...prev, __dueAmountFocused: true } : prev
+                    )
+                  }
+                  onBlur={() =>
+                    setEditPatientDetails(prev =>
+                      prev ? { ...prev, __dueAmountFocused: false } : prev
+                    )
+                  }
                   onChange={e =>
                     setEditPatientDetails(prev =>
                       prev
@@ -905,7 +951,21 @@ const Billing = () => {
                   type="number"
                   id="editExpenseAmount"
                   name="editExpenseAmount"
-                  value={editPatientDetails?.expenseAmount ?? ''}
+                  value={
+                    editPatientDetails && editPatientDetails.expenseAmount === 0 && editPatientDetails.__expenseAmountFocused
+                      ? ''
+                      : editPatientDetails?.expenseAmount ?? ''
+                  }
+                  onFocus={() =>
+                    setEditPatientDetails(prev =>
+                      prev ? { ...prev, __expenseAmountFocused: true } : prev
+                    )
+                  }
+                  onBlur={() =>
+                    setEditPatientDetails(prev =>
+                      prev ? { ...prev, __expenseAmountFocused: false } : prev
+                    )
+                  }
                   onChange={e =>
                     setEditPatientDetails(prev =>
                       prev
