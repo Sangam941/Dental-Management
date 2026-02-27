@@ -1,67 +1,32 @@
 import React, { useState } from 'react';
 import {
     User,
-    MapPin,
     Phone,
-    Mail,
     ChevronDown,
     Save,
     ArrowLeft,
-    Activity
+    Stethoscope
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-const provinces = [
-    'Koshi Province',
-    'Madhesh Province',
-    'Bagmati Province',
-    'Gandaki Province',
-    'Lumbini Province',
-    'Karnali Province',
-    'Sudurpashchim Province'
-];
-
-const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+import { useDoctorStore } from '../../../store/doctorStore';
 
 const AddPatient: React.FC = () => {
+
+    const { doctors } = useDoctorStore()
     // Individual form states
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
-    const [dob, setDob] = useState('');
+    const [fullName, setFullName] = useState('');
+    const [age, setAge] = useState('');
     const [gender, setGender] = useState('');
     const [phone, setPhone] = useState('');
-    const [email, setEmail] = useState('');
-    const [streetAddress, setStreetAddress] = useState('');
-    const [city, setCity] = useState('');
-    const [province, setProvince] = useState('');
-    const [postalCode, setPostalCode] = useState('');
-    const [country, setCountry] = useState('Nepal');
-    const [bloodGroup, setBloodGroup] = useState('');
-    const [maritalStatus, setMaritalStatus] = useState('');
-    const [allergies, setAllergies] = useState('');
+    const [address, setAddress] = useState('');
+    const [doctorName, setDoctorName] = useState('')
     const [chronicConditions, setChronicConditions] = useState('');
+
+    const [doctorId, setDoctorId] = useState<string>('')
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const patientData = {
-            firstName,
-            lastName,
-            dob,
-            gender,
-            phone,
-            email,
-            streetAddress,
-            city,
-            province,
-            postalCode,
-            country,
-            bloodGroup,
-            maritalStatus,
-            allergies,
-            chronicConditions
-        };
-        console.log('Patient Registration Data:', patientData);
-        // Add form submission logic here
+        
     };
 
     return (
@@ -94,47 +59,37 @@ const AddPatient: React.FC = () => {
                     <div className="p-8">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div className="space-y-1.5">
-                                <label className="admin-label">First Name *</label>
+                                <label className="admin-label">Full Name <span className='text-red-500 text-[16px]'>*</span></label>
                                 <input
                                     type="text"
-                                    value={firstName}
-                                    onChange={e => setFirstName(e.target.value)}
+                                    value={fullName}
+                                    onChange={e => setFullName(e.target.value)}
                                     placeholder="e.g., Ram"
                                     className="admin-input"
                                     required
                                 />
                             </div>
                             <div className="space-y-1.5">
-                                <label className="admin-label">Last Name *</label>
-                                <input
-                                    type="text"
-                                    value={lastName}
-                                    onChange={e => setLastName(e.target.value)}
-                                    placeholder="e.g., Sharma"
-                                    className="admin-input"
-                                    required
-                                />
-                            </div>
-                            <div className="space-y-1.5">
-                                <label className="admin-label">Date of Birth *</label>
+                                <label className="admin-label">Age <span className='text-red-500 text-[16px]'>*</span></label>
                                 <div className="relative">
                                     <input
-                                        type="date"
-                                        value={dob}
-                                        onChange={e => setDob(e.target.value)}
+                                        type="number"
+                                        value={age}
+                                        onChange={e => setAge(e.target.value)}
                                         className="admin-input pr-10"
+                                        placeholder='eg. 25'
                                         required
                                     />
                                 </div>
                             </div>
                             <div className="space-y-1.5">
-                                <label className="admin-label">Gender *</label>
+                                <label className="admin-label">Gender</label>
                                 <div className="relative">
                                     <select
                                         value={gender}
                                         onChange={e => setGender(e.target.value)}
                                         className="admin-input appearance-none cursor-pointer pr-10"
-                                        required
+                                        
                                     >
                                         <option value="">Select Gender</option>
                                         <option value="male">Male</option>
@@ -145,7 +100,7 @@ const AddPatient: React.FC = () => {
                                 </div>
                             </div>
                             <div className="space-y-1.5">
-                                <label className="admin-label">Contact Number *</label>
+                                <label className="admin-label">Contact Number <span className='text-red-500 text-[16px]'>*</span></label>
                                 <div className="relative flex items-center">
                                     <div className="absolute left-3 flex items-center pointer-events-none border-r border-admin-border pr-2">
                                         <Phone size={14} className="text-admin-text-faint" />
@@ -160,91 +115,16 @@ const AddPatient: React.FC = () => {
                                     />
                                 </div>
                             </div>
-                            <div className="space-y-1.5">
-                                <label className="admin-label">Email Address</label>
-                                <div className="relative flex items-center">
-                                    <div className="absolute left-3 flex items-center pointer-events-none border-r border-admin-border pr-2">
-                                        <Mail size={14} className="text-admin-text-faint" />
-                                    </div>
+                            <div className="grid grid-cols-1 gap-8">
+                                <div className="space-y-1.5">
+                                    <label className="admin-label">Address</label>
                                     <input
-                                        type="email"
-                                        value={email}
-                                        onChange={e => setEmail(e.target.value)}
-                                        placeholder="example@email.com"
-                                        className="admin-input pl-12"
+                                        type="text"
+                                        value={address}
+                                        onChange={e => setAddress(e.target.value)}
+                                        placeholder="e.g., New Baneshwor, Ward No. 10"
+                                        className="admin-input"
                                     />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Address Details */}
-                <div className="admin-card overflow-hidden">
-                    <div className="admin-section-header">
-                        <MapPin size={18} className="text-admin-primary" />
-                        Address Details
-                    </div>
-                    <div className="p-8 space-y-8">
-                        <div className="grid grid-cols-1 gap-8">
-                            <div className="space-y-1.5">
-                                <label className="admin-label">Street Address</label>
-                                <input
-                                    type="text"
-                                    value={streetAddress}
-                                    onChange={e => setStreetAddress(e.target.value)}
-                                    placeholder="e.g., New Baneshwor, Ward No. 10"
-                                    className="admin-input"
-                                />
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="space-y-1.5">
-                                <label className="admin-label">City</label>
-                                <input
-                                    type="text"
-                                    value={city}
-                                    onChange={e => setCity(e.target.value)}
-                                    placeholder="e.g., Kathmandu"
-                                    className="admin-input"
-                                />
-                            </div>
-                            <div className="space-y-1.5">
-                                <label className="admin-label">State / Province</label>
-                                <div className="relative">
-                                    <select
-                                        value={province}
-                                        onChange={e => setProvince(e.target.value)}
-                                        className="admin-input appearance-none cursor-pointer pr-10"
-                                    >
-                                        <option value="">Select Province</option>
-                                        {provinces.map(p => <option key={p} value={p}>{p}</option>)}
-                                    </select>
-                                    <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-admin-text-faint pointer-events-none" />
-                                </div>
-                            </div>
-                            <div className="space-y-1.5">
-                                <label className="admin-label">Postal Code</label>
-                                <input
-                                    type="text"
-                                    value={postalCode}
-                                    onChange={e => setPostalCode(e.target.value)}
-                                    placeholder="e.g., 44600"
-                                    className="admin-input"
-                                />
-                            </div>
-                            <div className="space-y-1.5">
-                                <label className="admin-label">Country</label>
-                                <div className="relative">
-                                    <select
-                                        value={country}
-                                        onChange={e => setCountry(e.target.value)}
-                                        className="admin-input appearance-none cursor-pointer pr-10"
-                                    >
-                                        <option value="Nepal">Nepal</option>
-                                        <option value="Other">Other</option>
-                                    </select>
-                                    <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-admin-text-faint pointer-events-none" />
                                 </div>
                             </div>
                         </div>
@@ -254,59 +134,47 @@ const AddPatient: React.FC = () => {
                 {/* Medical History */}
                 <div className="admin-card overflow-hidden">
                     <div className="admin-section-header">
-                        <Activity size={18} className="text-admin-primary" />
-                        Medical History
+                        <Stethoscope size={18} className="text-admin-primary" />
+                        Medical Information
                     </div>
                     <div className="p-8 space-y-8">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div className="space-y-1.5">
-                                <label className="admin-label">Blood Group</label>
+                                <label className="admin-label">Doctor / Consultant</label>
                                 <div className="relative">
                                     <select
-                                        value={bloodGroup}
-                                        onChange={e => setBloodGroup(e.target.value)}
+                                        value={doctorName}
+                                        onChange={e => {
+                                            setDoctorName(e.target.value);
+                                            // Find the department by name to get its id
+                                            const selectedDoc = doctors?.find(doctor => doctor.name === e.target.value);
+                                            if (selectedDoc) {
+                                                setDoctorId(selectedDoc?.id);
+                                            }
+                                        }}
                                         className="admin-input appearance-none cursor-pointer pr-10"
+                                        required
                                     >
-                                        <option value="">Select Blood Group</option>
-                                        {bloodGroups.map(bg => <option key={bg} value={bg}>{bg}</option>)}
+                                        <option value="">Select attending doctor</option>
+                                        {doctors?.map((doctor,idx)=>{
+                                            return(
+                                                <option key={idx} value={doctor.fullName}>{doctor.fullName}</option>
+                                            )
+                                        })}
                                     </select>
                                     <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-admin-text-faint pointer-events-none" />
                                 </div>
                             </div>
+
                             <div className="space-y-1.5">
-                                <label className="admin-label">Marital Status</label>
-                                <div className="relative">
-                                    <select
-                                        value={maritalStatus}
-                                        onChange={e => setMaritalStatus(e.target.value)}
-                                        className="admin-input appearance-none cursor-pointer pr-10"
-                                    >
-                                        <option value="">Select Status</option>
-                                        <option value="single">Single</option>
-                                        <option value="married">Married</option>
-                                        <option value="divorced">Divorced</option>
-                                        <option value="widowed">Widowed</option>
-                                    </select>
-                                    <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-admin-text-faint pointer-events-none" />
-                                </div>
-                            </div>
-                            <div className="space-y-1.5 col-span-full">
-                                <label className="admin-label">Allergies</label>
-                                <textarea
-                                    value={allergies}
-                                    onChange={e => setAllergies(e.target.value)}
-                                    placeholder="List any known allergies (e.g., Penicillin, Peanuts)"
-                                    className="admin-input min-h-[100px] py-4 resize-none"
-                                ></textarea>
-                            </div>
-                            <div className="space-y-1.5 col-span-full">
-                                <label className="admin-label">Chronic Conditions</label>
-                                <textarea
+                                <label className="admin-label">treatment / diagnosis</label>
+                                <input
+                                type='text'
                                     value={chronicConditions}
                                     onChange={e => setChronicConditions(e.target.value)}
-                                    placeholder="List any chronic conditions (e.g., Diabetes, Hypertension)"
-                                    className="admin-input min-h-[100px] py-4 resize-none"
-                                ></textarea>
+                                    placeholder="Brief description of treatment"
+                                    className="admin-input"
+                                />
                             </div>
                         </div>
                     </div>

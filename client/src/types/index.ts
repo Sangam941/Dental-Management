@@ -5,24 +5,15 @@ export interface Patient {
     phone: string;
     gender: string;
     age: number;
-    bloodGroup: string;
-    lastVisit: string;
-    image: string;
 }
 
 export interface Doctor {
-    id: string;
+    id : string;
     name: string;
     dept: string;
     phone: string;
     email: string;
     isActive: boolean;
-    image?: string;
-    specialty?: string;
-    description?: string;
-    rating?: number;
-    experience?: number;
-    languages?: string[];
 }
 
 export interface Appointment {
@@ -55,8 +46,7 @@ export interface InventoryItem {
 export interface Department {
     id: string;
     name: string;
-    totalStaff: number;
-    status: 'Active' | 'Inactive';
+    status: boolean | undefined;
 }
 
 export interface NavItem {

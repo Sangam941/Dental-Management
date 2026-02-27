@@ -5,12 +5,10 @@ import {
     Users,
     Stethoscope,
     ClipboardList,
-    Settings,
     Hospital,
     LogOut,
     Menu,
     X,
-    Archive,
     Building2
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
@@ -25,24 +23,14 @@ const AdminLayout: React.FC = () => {
             path: '/admin/dashboard'
         },
         {
-            name: 'Manage Doctors',
-            icon: <Stethoscope size={20} />,
-            path: '/admin/manage-doctors'
-        },
-        {
-            name: 'Appointments',
-            icon: <ClipboardList size={20} />,
-            path: '/admin/appointment'
-        },
-        {
             name: 'Patient Records',
             icon: <Users size={20} />,
             path: '/admin/patients'
         },
         {
-            name: 'Inventory',
-            icon: <Archive size={20} />,
-            path: '/admin/inventory'
+            name: 'Manage Doctors',
+            icon: <Stethoscope size={20} />,
+            path: '/admin/manage-doctors'
         },
         {
             name: 'Departments',
@@ -50,9 +38,9 @@ const AdminLayout: React.FC = () => {
             path: '/admin/departments'
         },
         {
-            name: 'Settings',
-            icon: <Settings size={20} />,
-            path: '/admin/settings'
+            name: 'Billing',
+            icon: <ClipboardList size={20} />,
+            path: '/admin/billings'
         },
     ];
 

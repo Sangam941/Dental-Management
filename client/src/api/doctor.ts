@@ -6,17 +6,17 @@ export const getDoctors = async () => {
     return data.data.doctors;
 };
 
-export const createDoctor = async (name: string) => {
-    const data = await api.post('/doctors', { name });
-    console.log(data)
-    return data;
+export const createDoctor = async (fullName: string, phoneNumber: string, departmentId: string,) => {
+    const data = await api.post('/doctors', { fullName, phoneNumber, departmentId });
+    console.log(data.data.doctor)
+    return data.data.doctor;
 };
 
 
-export const updateDoctor = async (id: string, name: string, status: string) => {
-    const data = await api.patch(`/doctors/${id}`, {name, status});
-    console.log(data)
-    return data;
+export const updateDoctor = async (id: string, fullName: string, isActive: boolean) => {
+    const data = await api.patch(`/doctors/${id}`, {fullName, isActive});
+    console.log("updated data::", data.data.doctor)
+    return data.data.doctor;
 };
 
 export const deleteDoctorApi = async (id: string) => {

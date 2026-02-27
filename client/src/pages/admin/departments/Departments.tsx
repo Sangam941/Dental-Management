@@ -5,7 +5,6 @@ import {
     Pencil,
     Trash2,
     Building2,
-    Users,
     Activity,
     TrendingUp,
     X,
@@ -15,67 +14,48 @@ import {
 import type { Department } from '../../../types';
 import { useDepartmentStore } from '../../../store/departmentStore';
 
-const getStatusBadge = (status: Department['status']) => {
-    switch (status) {
-        case 'Active':
-            return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
-        case 'Inactive':
-            return 'bg-slate-100 text-slate-500 border border-slate-200';
-        default:
-            return 'bg-slate-100 text-slate-500 border border-slate-200';
-    }
-};
-
-
 const Departments: React.FC = () => {
     const { departments, updateDepartment, deleteDepartment, addDepartment, fetchDepartments } = useDepartmentStore();
 
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [selectedDept, setSelectedDept] = useState<Department | null>(null);
+    const [deptId, setDeptId] = useState<string>('');
+    const [deptName, setDeptName] = useState<string>('');
+    const [deptStatus, setDeptStatus] = useState<boolean>(false);
+    const [formError, setFormError] = useState('');
 
     useEffect(() => {
         fetchDepartments();
     }, []);
 
-    // Modal states
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [selectedDept, setSelectedDept] = useState<Department | null>(null);
-    const [id, setId] = useState<string | ''>('')
-
-    // Individual form states
-    const [deptName, setDeptName] = useState<string>('');
-    const [deptTotalStaff, setDeptTotalStaff] = useState('');
-    const [deptStatus, setDeptStatus] = useState<Department['status']>('Active');
-    const [formError, setFormError] = useState('');
-
-
     // Stats
-    const totalDepts = departments?.length;
-    const activeDepts = totalDepts > 0 && departments?.filter(d => d.status === 'Active').length;
-    const totalStaff = totalDepts > 0 && departments?.reduce((acc, d) => acc + d.totalStaff, 0);
+    const totalDepts = departments.length;
+    const activeDepts = departments.filter(d => d.isActive).length;
 
     const stats = [
-        { title: 'Total Departments', count: String(totalDepts), icon: Building2, color: 'blue', trend: '+2%' },
-        { title: 'Active Departments', count: String(activeDepts), icon: Activity, color: 'emerald', trend: '+5%' },
-        { title: 'Total Staff', count: String(totalStaff), icon: Users, color: 'purple', trend: '+8%' }
+        { title: 'Total Departments', count: totalDepts, icon: Building2, color: 'blue', trend: '+2%' },
+        { title: 'Active Departments', count: activeDepts, icon: Activity, color: 'emerald', trend: '+5%' }
     ];
 
-    // Filter
-    const filtered = totalDepts >0 && departments?.filter(d => {
+    // Filtering
+    const filtered = departments.filter(d => {
         const matchSearch =
             d.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             d.id?.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchStatus = statusFilter === 'All' || d.status === statusFilter;
+        const matchStatus = statusFilter === 'All'
+            || (statusFilter === 'Active' && d.isActive)
+            || (statusFilter === 'Inactive' && !d.isActive);
         return matchSearch && matchStatus;
     });
 
     // --- RESET FORM ---
     const resetForm = () => {
         setDeptName('');
-        setDeptTotalStaff('');
-        setDeptStatus('Active');
+        setDeptStatus(false);
         setFormError('');
     };
 
@@ -85,21 +65,11 @@ const Departments: React.FC = () => {
         setIsAddModalOpen(true);
     };
 
-    const handleAdd = async () => {
+    const handleAdd = () => {
         if (!deptName.trim()) {
             setFormError('Department Name is required.');
             return;
         }
-        // const newDept: Department = {
-        //     id: `#DEPT-${String(departments.length + 1).padStart(3, '0')}`,
-        //     name: deptName.trim(),
-        //     head: deptHead.trim(),
-        //     totalStaff: parseInt(deptTotalStaff) || 0,
-        //     location: deptLocation.trim(),
-        //     status: deptStatus,
-        // };
-
-        //add department api call
         addDepartment(deptName);
         setIsAddModalOpen(false);
         resetForm();
@@ -108,11 +78,10 @@ const Departments: React.FC = () => {
     // --- EDIT ---
     const openEditModal = (dept: Department) => {
         setSelectedDept(dept);
-        setId(dept.id);
+        setDeptId(dept.id);
         setDeptName(dept.name);
-        setDeptStatus(dept.status);
+        setDeptStatus(dept.isActive);
         setFormError('');
-
         setIsEditModalOpen(true);
     };
 
@@ -122,7 +91,7 @@ const Departments: React.FC = () => {
             return;
         }
         setIsEditModalOpen(false);
-        updateDepartment(id, deptName, deptStatus);
+        updateDepartment(deptId, deptName, deptStatus);
         setSelectedDept(null);
         resetForm();
     };
@@ -130,19 +99,18 @@ const Departments: React.FC = () => {
     // --- DELETE ---
     const openDeleteModal = (dept: Department) => {
         setSelectedDept(dept);
-        setId(dept.id);
+        setDeptId(dept.id);
         setIsDeleteModalOpen(true);
     };
 
     const handleDelete = () => {
         setIsDeleteModalOpen(false);
-        deleteDepartment(id);
+        deleteDepartment(deptId);
         setSelectedDept(null);
     };
 
     return (
         <div className="p-6 lg:p-10 max-w-[1600px] mx-auto space-y-8 bg-admin-bg min-h-screen">
-
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
@@ -211,7 +179,6 @@ const Departments: React.FC = () => {
                         <thead>
                             <tr className="bg-white border-b border-admin-border-subtle">
                                 <th className="px-8 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Department</th>
-                                <th className="px-6 py-5 text-center text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Staff</th>
                                 <th className="px-6 py-5 text-center text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Status</th>
                                 <th className="px-8 py-5 text-right text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Actions</th>
                             </tr>
@@ -219,7 +186,7 @@ const Departments: React.FC = () => {
                         <tbody className="divide-y divide-admin-border-subtle">
                             {departments.length === 0 ? (
                                 <tr>
-                                    <td colSpan={4} className="px-8 py-12 text-center">
+                                    <td colSpan={3} className="px-8 py-12 text-center">
                                         <div className="flex flex-col items-center gap-2 text-admin-text-faint">
                                             <Building2 size={32} className="opacity-30" />
                                             <p className="text-sm font-bold">No departments found</p>
@@ -228,7 +195,7 @@ const Departments: React.FC = () => {
                                     </td>
                                 </tr>
                             ) : (
-                                departments.length > 0 && departments.map((dept, idx) => (
+                                filtered.map((dept, idx) => (
                                     <tr key={idx} className="hover:bg-admin-surface/30 transition-colors">
                                         <td className="px-8 py-4">
                                             <div className="flex items-center gap-3">
@@ -241,16 +208,14 @@ const Departments: React.FC = () => {
                                                 </div>
                                             </div>
                                         </td>
-
-                                        <td className="px-6 py-4 text-center">
-                                            <div className="flex flex-col items-center">
-                                                <p className="text-sm font-black text-admin-text">{dept._count?.doctors || 0}</p>
+                                        <td className="px-6 py-4">
+                                            <div className="flex justify-center">
+                                                <div>
+                                                    <div className={`py-1 px-2 rounded-full cursor-pointer transition-colors ${dept.isActive ? 'bg-green-200 text-green-900 border border-green-500' : 'bg-slate-200 border border-slate-500'} text-xs font-bold text-admin-text`}>
+                                                        {dept.isActive ? 'Active' : 'Inactive'}
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${getStatusBadge(dept.status)}`}>
-                                                {dept.isActive}
-                                            </span>
                                         </td>
                                         <td className="px-8 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
@@ -276,8 +241,6 @@ const Departments: React.FC = () => {
                         </tbody>
                     </table>
                 </div>
-
-                {/* Table Footer */}
                 <div className="px-8 py-5 border-t border-admin-border-subtle flex flex-col sm:flex-row items-center justify-between gap-4">
                     <p className="text-xs font-bold text-admin-text-muted">
                         Showing <span className="text-admin-text">{filtered.length}</span> of <span className="text-admin-text">{departments.length}</span> departments
@@ -289,7 +252,6 @@ const Departments: React.FC = () => {
             {isAddModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-admin-border animate-fade-in">
-                        {/* Modal Header */}
                         <div className="flex items-center justify-between px-6 py-5 border-b border-admin-border-subtle">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-blue-50 rounded-xl">
@@ -307,8 +269,6 @@ const Departments: React.FC = () => {
                                 <X size={20} />
                             </button>
                         </div>
-
-                        {/* Modal Body */}
                         <div className="px-6 py-5 space-y-4">
                             {formError && (
                                 <div className="flex items-center gap-2 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs font-bold text-rose-600">
@@ -316,14 +276,19 @@ const Departments: React.FC = () => {
                                     {formError}
                                 </div>
                             )}
-                            <DeptFormFields
-                                name={deptName} setName={setDeptName}
-                                totalStaff={deptTotalStaff} setTotalStaff={setDeptTotalStaff}
-                                status={deptStatus} setStatus={setDeptStatus}
-                            />
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black text-admin-text-muted uppercase tracking-wider">
+                                    Department Name <span className="text-rose-500">*</span>
+                                </label>
+                                <input
+                                    value={deptName}
+                                    onChange={e => setDeptName(e.target.value)}
+                                    placeholder="e.g. Cardiology"
+                                    className="w-full px-4 py-2.5 border border-admin-border rounded-xl text-admin-text text-sm font-medium focus:ring-2 focus:ring-admin-primary/20 focus:border-admin-primary focus:outline-none transition-all placeholder:text-admin-text-faint bg-white"
+                                    required
+                                />
+                            </div>
                         </div>
-
-                        {/* Modal Footer */}
                         <div className="px-6 py-4 border-t border-admin-border-subtle flex justify-end gap-3">
                             <button
                                 onClick={() => setIsAddModalOpen(false)}
@@ -363,7 +328,6 @@ const Departments: React.FC = () => {
                                 <X size={20} />
                             </button>
                         </div>
-
                         <div className="px-6 py-5 space-y-4">
                             {formError && (
                                 <div className="flex items-center gap-2 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs font-bold text-rose-600">
@@ -371,13 +335,31 @@ const Departments: React.FC = () => {
                                     {formError}
                                 </div>
                             )}
-                            <DeptFormFields
-                                name={deptName} setName={setDeptName}
-                                totalStaff={deptTotalStaff} setTotalStaff={setDeptTotalStaff}
-                                status={deptStatus} setStatus={setDeptStatus}
-                            />
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black text-admin-text-muted uppercase tracking-wider">
+                                    Department Name <span className="text-rose-500">*</span>
+                                </label>
+                                <input
+                                    value={deptName}
+                                    onChange={e => setDeptName(e.target.value)}
+                                    placeholder="e.g. Cardiology"
+                                    className="w-full px-4 py-2.5 border border-admin-border rounded-xl text-admin-text text-sm font-medium focus:ring-2 focus:ring-admin-primary/20 focus:border-admin-primary focus:outline-none transition-all placeholder:text-admin-text-faint bg-white"
+                                    required
+                                />
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    id="isActive"
+                                    checked={deptStatus}
+                                    onChange={e => setDeptStatus(e.target.checked)}
+                                    className="rounded border-admin-border text-admin-primary focus:ring-admin-primary"
+                                />
+                                <label htmlFor="isActive" className="text-xs font-bold text-admin-text">
+                                    Is Active
+                                </label>
+                            </div>
                         </div>
-
                         <div className="px-6 py-4 border-t border-admin-border-subtle flex justify-end gap-3">
                             <button
                                 onClick={() => setIsEditModalOpen(false)}
@@ -430,62 +412,4 @@ const Departments: React.FC = () => {
     );
 };
 
-// ─── Shared Form Fields Component ────────────────────────────────────────────
-interface FormFieldsProps {
-    name: string;
-    setName: (val: string) => void;
-    totalStaff: string;
-    setTotalStaff: (val: string) => void;
-    status: Department['status'];
-    setStatus: (val: Department['status']) => void;
-}
-
-const DeptFormFields: React.FC<FormFieldsProps> = ({
-    name, setName,
-    totalStaff, setTotalStaff, status, setStatus
-}) => (
-    <>
-        <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-admin-text-muted uppercase tracking-wider">
-                Department Name <span className="text-rose-500">*</span>
-            </label>
-            <input
-                value={name}
-                onChange={e => setName(e.target.value)}
-                placeholder="e.g. Cardiology"
-                className="w-full px-4 py-2.5 border border-admin-border rounded-xl text-admin-text text-sm font-medium focus:ring-2 focus:ring-admin-primary/20 focus:border-admin-primary focus:outline-none transition-all placeholder:text-admin-text-faint bg-white"
-                required
-            />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-admin-text-muted uppercase tracking-wider">Total Staff</label>
-                <input
-                    type="number"
-                    min="0"
-                    value={totalStaff}
-                    onChange={e => setTotalStaff(e.target.value)}
-                    placeholder="0"
-                    className="w-full px-4 py-2.5 border border-admin-border rounded-xl text-admin-text text-sm font-medium focus:ring-2 focus:ring-admin-primary/20 focus:border-admin-primary focus:outline-none transition-all placeholder:text-admin-text-faint bg-white"
-                />
-            </div>
-        </div>
-
-        <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-admin-text-muted uppercase tracking-wider">Status</label>
-            <select
-                value={status}
-                onChange={e => setStatus(e.target.value as Department['status'])}
-                className="w-full px-4 py-2.5 border border-admin-border rounded-xl text-admin-text text-sm font-medium focus:ring-2 focus:ring-admin-primary/20 focus:border-admin-primary focus:outline-none transition-all bg-white cursor-pointer appearance-none"
-            >
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-                <option value="Under Maintenance">Under Maintenance</option>
-            </select>
-        </div>
-    </>
-);
-
-export default Departments;
-
+export default Departments

@@ -1,53 +1,35 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     User,
     Phone,
-    Stethoscope,
-    Camera,
     Save,
     ArrowLeft
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-const specialtyOptions = [
-    'Cardiology',
-    'Pediatrics',
-    'Neurology',
-    'Orthopedics',
-    'General Medicine',
-    'Dental',
-    'Gynecology',
-    'ENT'
-];
+import { useDoctorStore } from '../../../store/doctorStore';
+import { useDepartmentStore } from '../../../store/departmentStore';
 
 const AddDoctor: React.FC = () => {
+
+    const { departments } = useDepartmentStore()
+
+    const { addDoctor } = useDoctorStore();
     // Individual form states
     const [fullName, setFullName] = useState('');
-    const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
-    const [dob, setDob] = useState('');
     const [gender, setGender] = useState('male');
     const [specialty, setSpecialty] = useState('');
-    const [qualifications, setQualifications] = useState('');
-    const [registrationNumber, setRegistrationNumber] = useState('');
-    const [experience, setExperience] = useState('');
+    const [deptId, setDeptId] = useState('')
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const doctorData = {
-            fullName,
-            email,
-            phone,
-            dob,
-            gender,
-            specialty,
-            qualifications,
-            registrationNumber,
-            experience
-        };
-        console.log('Doctor Registration Data:', doctorData);
+        addDoctor(fullName, phone, deptId);
+        setFullName('');
+        setPhone('');
+        setSpecialty('');
         // Add form submission logic here
     };
+    
 
     return (
         <div className="px-8 py-2 max-w-[1200px] mx-auto space-y-8 pb-12">
@@ -69,25 +51,6 @@ const AddDoctor: React.FC = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-8">
-                {/* Profile Photo Section */}
-                <div className="admin-card overflow-hidden">
-                    <div className="p-6 space-y-4">
-                        <h3 className="text-sm font-bold text-admin-text flex items-center gap-2">
-                            Profile Photo
-                        </h3>
-                        <div className="flex items-center gap-8">
-                            <div className="w-32 h-32 rounded-full border-2 border-dashed border-admin-border bg-admin-surface flex flex-col items-center justify-center gap-2 text-admin-text-faint">
-                                <Camera size={32} strokeWidth={1.5} />
-                            </div>
-                            <div className="space-y-3">
-                                <button type="button" className="px-6 py-2 admin-button-secondary text-sm font-bold border border-admin-border rounded-xl">
-                                    Select Image
-                                </button>
-                                <p className="text-xs text-admin-text-faint font-medium tracking-tight">JPG, GIF or PNG. Max size of 2MB.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 {/* Personal Information Section */}
                 <div className="admin-card overflow-hidden">
@@ -108,16 +71,6 @@ const AddDoctor: React.FC = () => {
                             />
                         </div>
                         <div className="space-y-1.5">
-                            <label className="admin-label">Email Address</label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={e => setEmail(e.target.value)}
-                                placeholder="john.doe@hospital.com"
-                                className="admin-input"
-                            />
-                        </div>
-                        <div className="space-y-1.5">
                             <label className="admin-label">Contact Number</label>
                             <div className="relative flex items-center">
                                 <div className="absolute left-3 flex items-center pointer-events-none border-r border-admin-border pr-2">
@@ -134,15 +87,26 @@ const AddDoctor: React.FC = () => {
                             </div>
                         </div>
                         <div className="space-y-1.5">
-                            <label className="admin-label">Date of Birth</label>
-                            <input
-                                type="date"
-                                value={dob}
-                                onChange={e => setDob(e.target.value)}
-                                className="admin-input"
+                            <label className="admin-label">Department / Specialty</label>
+                            <select
+                                value={specialty}
+                                onChange={e => {
+                                    setSpecialty(e.target.value);
+                                    // Find the department by name to get its id
+                                    const selectedDept = departments.find(dept => dept.name === e.target.value);
+                                    if (selectedDept) {
+                                        setDeptId(selectedDept.id)
+                                    }
+                                }}
+                                className="admin-input cursor-pointer"
                                 required
-                            />
-                        </div>
+                            >
+                                <option value="">Select Specialty</option>
+                                {departments.map((dept) => (
+                                    <option key={dept.id} value={dept.name}>{dept.name}</option>
+                                ))}
+                            </select>
+                            </div>
                         <div className="space-y-2 col-span-full">
                             <label className="admin-label">Gender</label>
                             <div className="flex gap-6">
@@ -163,63 +127,6 @@ const AddDoctor: React.FC = () => {
                                     </label>
                                 ))}
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Professional Qualifications Section */}
-                <div className="admin-card overflow-hidden">
-                    <div className="admin-section-header">
-                        <Stethoscope size={18} className="text-admin-primary" />
-                        Professional Qualifications
-                    </div>
-                    <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="space-y-1.5">
-                            <label className="admin-label">Department / Specialty</label>
-                            <select
-                                value={specialty}
-                                onChange={e => setSpecialty(e.target.value)}
-                                className="admin-input cursor-pointer"
-                                required
-                            >
-                                <option value="">Select Specialty</option>
-                                {specialtyOptions.map(option => (
-                                    <option key={option} value={option}>{option}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="space-y-1.5">
-                            <label className="admin-label">Qualifications</label>
-                            <input
-                                type="text"
-                                value={qualifications}
-                                onChange={e => setQualifications(e.target.value)}
-                                placeholder="MBBS, MD, MS (Cardiology)"
-                                className="admin-input"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-1.5">
-                            <label className="admin-label">NMC Registration Number</label>
-                            <input
-                                type="text"
-                                value={registrationNumber}
-                                onChange={e => setRegistrationNumber(e.target.value)}
-                                placeholder="NMC-12345-ABC"
-                                className="admin-input"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-1.5">
-                            <label className="admin-label">Experience (Years)</label>
-                            <input
-                                type="number"
-                                value={experience}
-                                onChange={e => setExperience(e.target.value)}
-                                placeholder="5"
-                                className="admin-input"
-                                required
-                            />
                         </div>
                     </div>
                 </div>

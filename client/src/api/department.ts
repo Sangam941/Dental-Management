@@ -19,8 +19,8 @@ export const createDepartment = async (name: string) => {
 };
 
 
-export const updateDepartment = async (id: string, name: string, status: string) => {
-    const data = await api.patch(`/departments/${id}`, {name, status});
+export const updateDepartment = async (id: string, name: string, isActive: boolean) => {
+    const data = await api.patch(`/departments/${id}`, {name, isActive});
     console.log(data)
     return data;
 };

@@ -15,9 +15,8 @@ import {
 } from 'lucide-react';
 
 const stats = [
-    { title: 'TOTAL REGISTERED', count: '14,205', icon: Users, trend: '1.2%', trendType: 'up', color: 'blue' },
-    { title: 'NEW THIS MONTH', count: '342', icon: UserPlus, trend: '5.4%', trendType: 'up', color: 'blue' },
-    { title: 'EMERGENCY ADMISSIONS', count: '58', icon: Flame, trend: '2.1%', trendType: 'down', color: 'rose' }
+    { title: 'TOTAL REGISTERED', count: '204', icon: Users },
+    { title: 'NEW THIS MONTH', count: '34', icon: UserPlus },
 ];
 
 const genders = ['All Genders', 'Male', 'Female', 'Other'];
@@ -72,21 +71,14 @@ const Patients: React.FC = () => {
             {/* Stat Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {stats.map((stat, idx) => (
-                    <div key={idx} className="bg-white p-6 rounded-2xl border border-admin-border shadow-sm flex items-center gap-6 group hover:border-admin-primary/30 transition-all cursor-default">
+                    <div key={idx} className="bg-white p-4 rounded-2xl border border-admin-border shadow-sm flex items-center gap-6 group hover:border-admin-primary/30 transition-all cursor-default">
                         <div className={`p-4 rounded-xl bg-admin-surface text-admin-text-muted`}>
-                            <stat.icon size={28} />
+                            <stat.icon size={22} />
                         </div>
                         <div className="flex-1">
                             <p className="text-[10px] font-black text-admin-text-muted tracking-widest uppercase">{stat.title}</p>
                             <div className="flex items-end gap-3 mt-1">
-                                <h3 className="text-3xl font-black text-admin-text leading-none">{stat.count}</h3>
-                                <div className={`flex items-center gap-1 text-[11px] font-black px-2 py-0.5 rounded-full border ${stat.trendType === 'up'
-                                    ? 'text-emerald-600 bg-emerald-50 border-emerald-100'
-                                    : 'text-rose-600 bg-rose-50 border-rose-100'
-                                    }`}>
-                                    {stat.trendType === 'up' ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-                                    {stat.trend}
-                                </div>
+                                <h3 className="text-2xl font-black text-admin-text leading-none">{stat.count}</h3>
                             </div>
                         </div>
                     </div>
@@ -142,9 +134,9 @@ const Patients: React.FC = () => {
                                 <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">ID</th>
                                 <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Gender</th>
                                 <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Age</th>
-                                <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Blood Group</th>
                                 <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Phone No.</th>
-                                <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Last Visit</th>
+                                <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Doctor</th>
+                                <th className="px-6 py-5 text-left text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Treatment</th>
                                 <th className="px-8 py-5 text-right text-[10px] font-black text-admin-text-faint uppercase tracking-widest">Actions</th>
                             </tr>
                         </thead>
@@ -153,14 +145,8 @@ const Patients: React.FC = () => {
                                 <tr key={idx} className="hover:bg-admin-surface/30 transition-colors">
                                     <td className="px-8 py-4">
                                         <div className="flex items-center gap-3">
-                                            <img
-                                                src={patient.image}
-                                                alt={patient.name}
-                                                className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm"
-                                            />
                                             <div>
                                                 <h4 className="text-sm font-bold text-admin-text leading-tight">{patient.name}</h4>
-                                                <p className="text-[10px] font-bold text-admin-text-faint">{patient.email}</p>
                                             </div>
                                         </div>
                                     </td>
@@ -176,14 +162,14 @@ const Patients: React.FC = () => {
                                     <td className="px-6 py-4 text-sm font-bold text-admin-text-muted">
                                         {patient.age}
                                     </td>
-                                    <td className="px-6 py-4 text-sm font-black text-rose-500">
-                                        {patient.bloodGroup}
+                                    <td className="px-6 py-4 text-xs font-bold text-admin-text">
+                                        {patient.phone}
                                     </td>
                                     <td className="px-6 py-4 text-xs font-bold text-admin-text">
                                         {patient.phone}
                                     </td>
-                                    <td className="px-6 py-4 text-xs font-bold text-admin-text-muted">
-                                        {patient.lastVisit}
+                                    <td className="px-6 py-4 text-xs font-bold text-admin-text">
+                                        {patient.phone}
                                     </td>
                                     <td className="px-8 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">

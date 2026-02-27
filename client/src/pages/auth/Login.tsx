@@ -26,7 +26,7 @@ const Login: React.FC = () => {
 
         //login api calling through zustand
         await login(email, password);
-        navigate('/admin/dashboard');
+        navigate('/admin');
 
     };
 

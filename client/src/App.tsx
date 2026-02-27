@@ -6,18 +6,14 @@ import About from './pages/public/About';
 import Contact from './pages/public/Contact';
 import Doctors from './pages/public/Doctors';
 import Services from './pages/public/Services';
-import AdminDashboard from './pages/admin/dashboard/AdminDashboard';
 import AddDoctor from './pages/admin/doctors/AddDoctor';
 import ManageDoctors from './pages/admin/doctors/ManageDoctors';
 import Patients from './pages/admin/patients/Patients';
 import AddPatient from './pages/admin/patients/AddPatient';
-import Inventory from './pages/admin/inventory/Inventory';
-import Appointments from './pages/admin/appointments/Appointments';
-import AddAppointment from './pages/admin/appointments/AddAppointment';
-import AddItem from './pages/admin/inventory/AddItem';
 import Login from './pages/auth/Login';
 import AdminLayout from './layouts/AdminLayout';
 import Departments from './pages/admin/departments/Departments';
+import Billing from './pages/admin/billing/Billing';
 
 const ProtectedAdminRoute = () => {
   const { isAuthenticated } = useAuthStore();
@@ -45,18 +41,13 @@ const router = createBrowserRouter([
     path: "/admin",
     element: <ProtectedAdminRoute />,
     children: [
-      { index: true, element: <AdminDashboard /> },
-      { path: "dashboard", element: <AdminDashboard /> },
-      { path: "appointment", element: <Appointments /> },
-      { path: "appointment/add-appointment", element: <AddAppointment /> },
-      { path: "manage-doctors/add-doctor", element: <AddDoctor /> },
+      { index: true, element: <Navigate to="/admin/patients" /> },
       { path: "manage-doctors", element: <ManageDoctors /> },
+      { path: "manage-doctors/add-doctor", element: <AddDoctor /> },
       { path: "patients", element: <Patients /> },
       { path: "patients/new-patient", element: <AddPatient /> },
-      { path: "inventory", element: <Inventory /> },
-      { path: "inventory/add-item", element: <AddItem /> },
       { path: "departments", element: <Departments /> },
-      { path: "doctors", element: <Doctors /> },
+      { path: "billings", element: <Billing /> },
     ],
   },
 ]);

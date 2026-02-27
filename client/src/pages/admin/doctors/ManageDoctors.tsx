@@ -7,17 +7,12 @@ import {
     Trash2,
     Stethoscope,
     UserCheck,
-    Activity,
-
-    TrendingUp,
-    ChevronDown
+    ChevronDown,
+    X
 } from 'lucide-react';
 
-import { DUMMY_DOCTORS as initialDoctors, DEPARTMENTS_LIST } from '../../../data/dummyData';
 import { useDoctorStore } from '../../../store/doctorStore';
 
-
-const departments = ['All Departments', ...DEPARTMENTS_LIST];
 
 const getStatusColor = (status: string) => {
     switch (status) {
@@ -32,19 +27,26 @@ const getStatusColor = (status: string) => {
 const ManageDoctors: React.FC = () => {
 
     // zustand store 
-    const { doctors, isLoading, fetchDoctors } = useDoctorStore();
+    const { doctors, isLoading, fetchDoctors, deleteDoctor, updateDoctor } = useDoctorStore();
     const [selectedDept, setSelectedDept] = useState('All Departments');
     const [searchQuery, setSearchQuery] = useState('');
-    const [doctorList, setDoctorList] = useState(initialDoctors);
 
-    const toggleActiveStatus = (id: string) => {
-        setDoctorList(prev => prev.map(doc =>
-            doc.id === id ? { ...doc, isActive: !doc.isActive } : doc
-        ));
-    };
+    // Modal states
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [Id, setId] = useState<string>('')
+
+    const [editFullName, setEditFullName] = useState('')
+    const [editIsActive, setEditIsActive] = useState(false)
+
+    // const toggleActiveStatus = (id: string) => {
+    //     setDoctorList(prev => prev.map(doc =>
+    //         doc.id === id ? { ...doc, isActive: !doc.isActive } : doc
+    //     ));
+    // };
 
     const filteredDoctors = doctors?.filter(doc => {
-        const matchesDept = selectedDept === 'All Departments' || doc.dept === selectedDept;
+        const matchesDept = selectedDept === 'All Departments' || doc?.department?.name === selectedDept;
         const matchesSearch =
             doc.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             doc.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -55,13 +57,37 @@ const ManageDoctors: React.FC = () => {
     // Dynamic stats derived from data
     const totalDoctors = doctors?.length;
     const activeDoctors = doctors?.filter(d => d.isActive).length;
-    const uniqueDepts = new Set(doctors?.map(d => d.dept)).size;
 
     const stats = [
-        { title: 'Total Doctors', count: String(totalDoctors), icon: Stethoscope, trend: '+5%', color: 'blue' },
-        { title: 'Active Doctors', count: String(activeDoctors), icon: UserCheck, trend: '+3%', color: 'emerald' },
-        { title: 'Departments', count: String(uniqueDepts), icon: Activity, trend: '+2%', color: 'amber' }
+        { title: 'Total Doctors', count: String(totalDoctors), icon: Stethoscope, color: 'blue' },
+        { title: 'Active Doctors', count: String(activeDoctors), icon: UserCheck, color: 'emerald' },
     ];
+
+    // --- EDIT ---
+    const openEditModal = (id:string, name:string, isActive:boolean) => {
+        setId(id);
+        setEditFullName(name);
+        setEditIsActive(isActive);
+
+        setIsEditModalOpen(true);
+    };
+
+    const handleEdit = () => {
+        setIsEditModalOpen(false);
+        updateDoctor(Id, editFullName, editIsActive);
+    };
+
+    // --- DELETE ---
+    const openDeleteModal = (id:String) => {
+        setId(id);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleDelete = () => {
+        setIsDeleteModalOpen(false);
+        deleteDoctor(Id);
+    };
+
 
 
     useEffect(() => {
@@ -89,16 +115,12 @@ const ManageDoctors: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
                 {stats.map((stat, idx) => (
                     <div key={idx} className="bg-white p-6 rounded-2xl border border-admin-border shadow-sm flex flex-col justify-between group hover:border-admin-primary/30 transition-all cursor-default relative overflow-hidden">
-                        <div className="flex justify-between items-start mb-4">
+                        <div className="flex justify-center items-center mb-4">
                             <div className={`p-3 rounded-xl bg-${stat.color}-50 text-${stat.color}-600`}>
                                 <stat.icon size={22} />
                             </div>
-                            <div className="flex items-center gap-1 text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-                                <TrendingUp size={10} />
-                                {stat.trend}
-                            </div>
                         </div>
-                        <div>
+                        <div className='flex flex-col items-center justify-center'>
                             <p className="text-xs font-bold text-admin-text-muted mb-1">{stat.title}</p>
                             <h3 className="text-2xl font-black text-admin-text leading-none">{stat.count}</h3>
                         </div>
@@ -114,8 +136,9 @@ const ManageDoctors: React.FC = () => {
                         onChange={(e) => setSelectedDept(e.target.value)}
                         className="w-full pl-4 pr-10 py-2.5 bg-admin-surface border border-admin-border rounded-xl text-xs font-bold text-admin-text focus:outline-none focus:ring-2 focus:ring-admin-primary/20 transition-all appearance-none cursor-pointer"
                     >
-                        {departments.map((dept) => (
-                            <option key={dept} value={dept}>{dept}</option>
+                        <option value="All Departments">All Departments</option>
+                        {doctors?.map((doctor) => (
+                            <option key={doctor?.department?.id} value={doctor?.department?.name}>{doctor?.department?.name}</option>
                         ))}
                     </select>
                     <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-admin-text-faint pointer-events-none" size={16} />
@@ -185,18 +208,21 @@ const ManageDoctors: React.FC = () => {
                                         <td className="px-6 py-4">
                                             <div className="flex justify-center">
                                                 <div
-                                                    onClick={() => toggleActiveStatus(doctor.id)}
-                                                     >
+                                                >
                                                     <div className={`py-1 px-2 rounded-full cursor-pointer transition-colors ${doctor.isActive ? 'bg-green-200 text-green-900 border border-green-500' : 'bg-slate-200 border border-slate-500'} text-xs font-bold text-admin-text`}>{doctor.isActive ? 'Active' : 'Inactive'}</div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-8 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
-                                                <button className="p-2 text-admin-text-faint hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer">
+                                                <button
+                                                onClick={()=>openEditModal(doctor.id, doctor.fullName, doctor.isActive)}
+                                                className="p-2 text-admin-text-faint hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer">
                                                     <Pencil size={16} />
                                                 </button>
-                                                <button className="p-2 text-admin-text-faint hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all cursor-pointer">
+                                                <button
+                                                    onClick={() =>openDeleteModal(doctor.id)}
+                                                    className="p-2 text-admin-text-faint hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all cursor-pointer">
                                                     <Trash2 size={16} />
                                                 </button>
                                             </div>
@@ -211,7 +237,7 @@ const ManageDoctors: React.FC = () => {
                 {/* Footer / Pagination */}
                 <div className="px-8 py-5 border-t border-admin-border-subtle flex flex-col sm:flex-row items-center justify-between gap-4">
                     <p className="text-xs font-bold text-admin-text-muted">
-                        Showing <span className="text-admin-text">1-{filteredDoctors.length}</span> of <span className="text-admin-text">{doctorList.length}</span> doctors
+                        Showing <span className="text-admin-text">1-{filteredDoctors.length}</span> of <span className="text-admin-text">{doctors.length}</span> doctors
                     </p>
                     <div className="flex items-center gap-1.5">
                         <button className="px-3 py-1.5 border border-admin-border rounded-lg text-xs font-bold text-admin-text-muted hover:bg-admin-surface transition-all">
@@ -226,7 +252,113 @@ const ManageDoctors: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* ───────────────────── EDIT MODAL ───────────────────── */}
+            {isEditModalOpen && selectedDept && (
+                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-admin-border animate-fade-in">
+                        <div className="flex items-center justify-between px-6 py-5 border-b border-admin-border-subtle">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-blue-50 rounded-xl">
+                                    <Pencil size={20} className="text-admin-primary" />
+                                </div>
+                                <div>
+                                    <h2 className="text-base font-black text-admin-text">Edit Department</h2>
+                                    <p className="text-[10px] font-bold text-admin-text-faint">{selectedDept.id}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setIsEditModalOpen(false)}
+                                className="p-2 text-admin-text-faint hover:text-admin-text hover:bg-admin-surface rounded-xl transition-all"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="px-6 py-5 space-y-4">
+                           
+                            <form className="space-y-4">
+                                <div>
+                                    <label htmlFor="fullname" className="block text-xs font-bold text-admin-text mb-1">
+                                        Full Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="fullname"
+                                        name="fullname"
+                                        value={editFullName}
+                                        onChange={e => setEditFullName(e.target.value)}
+                                        className="w-full px-4 py-2 border border-admin-border rounded-lg focus:outline-none focus:ring-2 focus:ring-admin-primary"
+                                        placeholder="Enter full name"
+                                        required
+                                    />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        id="isActive"
+                                        checked={editIsActive}
+                                        onChange={e => setEditIsActive(e.target.checked)}
+                                        className="rounded border-admin-border text-admin-primary focus:ring-admin-primary"
+                                    />
+                                    <label htmlFor="isActive" className="text-xs font-bold text-admin-text">
+                                        Is Active
+                                    </label>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div className="px-6 py-4 border-t border-admin-border-subtle flex justify-end gap-3">
+                            <button
+                                onClick={() => setIsEditModalOpen(false)}
+                                className="px-5 py-2.5 rounded-xl border border-admin-border text-xs font-bold text-admin-text-muted hover:bg-admin-surface transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleEdit}
+                                className="px-5 py-2.5 rounded-xl bg-admin-primary text-white text-xs font-black hover:bg-admin-primary-hover transition-all shadow-lg shadow-admin-primary/20"
+                            >
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ───────────────────── DELETE MODAL ───────────────────── */}
+            {isDeleteModalOpen && selectedDept && (
+                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm border border-admin-border animate-fade-in">
+                        <div className="px-6 py-6 text-center space-y-3">
+                            <div className="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto">
+                                <Trash2 size={24} className="text-rose-500" />
+                            </div>
+                            <h2 className="text-base font-black text-admin-text">Delete Department?</h2>
+                            <p className="text-xs font-bold text-admin-text-muted">
+                                Are you sure you want to delete <span className="text-admin-text">{selectedDept.name}</span>? This action cannot be undone.
+                            </p>
+                        </div>
+                        <div className="px-6 py-4 border-t border-admin-border-subtle flex justify-end gap-3">
+                            <button
+                                onClick={() => setIsDeleteModalOpen(false)}
+                                className="px-5 py-2.5 rounded-xl border border-admin-border text-xs font-bold text-admin-text-muted hover:bg-admin-surface transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDelete}
+                                className="px-5 py-2.5 rounded-xl bg-rose-500 text-white text-xs font-black hover:bg-rose-600 transition-all"
+                            >
+                                Yes, Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
+
+
     );
 };
 
