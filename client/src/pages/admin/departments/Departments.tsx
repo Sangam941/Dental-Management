@@ -191,7 +191,7 @@ const Departments: React.FC = () => {
                                             <Building2 size={32} className="opacity-30" />
                                             <p className="text-sm font-bold">No departments found</p>
                                             <p className="text-xs">Try adjusting your search or filter</p>
-                                        </div>
+                                        </div>~
                                     </td>
                                 </tr>
                             ) : (
