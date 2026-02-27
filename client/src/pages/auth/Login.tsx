@@ -10,47 +10,24 @@ import {
     Activity,
     AlertCircle
 } from 'lucide-react';
-import { useAuthStore } from '../store/authStore';
+import { useAuthStore } from '../../store/authStore';
 // import { login as loginApi } from '../api/auth';
 
 const Login: React.FC = () => {
     const navigate = useNavigate();
-    const setAuth = useAuthStore((state) => state.setAuth);
+    const { login, loading } = useAuthStore();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsLoading(true);
-        setError(null);
 
-        try {
-            // In a real app, this would be an actual API call
-            // const data = await loginApi({ email, password });
+        //login api calling through zustand
+        await login(email, password);
+        navigate('/admin');
 
-            // For now, let's simulate a successful admin login
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            const mockUser = {
-                id: '1',
-                name: 'Admin User',
-                email: email,
-                role: 'Admin' as const,
-                avatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=100'
-            };
-
-            const mockToken = 'mock-jwt-token';
-            setAuth(mockUser, mockToken);
-            navigate('/admin/dashboard');
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
-        } finally {
-            setIsLoading(false);
-        }
     };
 
     return (
@@ -70,12 +47,12 @@ const Login: React.FC = () => {
                             <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30">
                                 <Activity className="text-white" size={28} />
                             </div>
-                            <span className="text-3xl font-black text-white tracking-tight">Health<span className="opacity-70">First</span></span>
+                            <span className="text-3xl font-black text-white tracking-tight">Prestin <span className="opacity-70">Dental</span></span>
                         </div>
 
                         <h2 className="text-5xl font-black text-white leading-[1.1] mb-6">
                             Smart Portal for <br />
-                            <span className="text-blue-200">Modern Healthcare</span>
+                            <span className="text-blue-200">Modern Dentistry</span>
                         </h2>
                         <p className="text-blue-100 text-lg font-medium leading-relaxed max-w-[400px]">
                             Centralized management system designed for speed, efficiency, and clinical precision.
@@ -106,13 +83,6 @@ const Login: React.FC = () => {
                             <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-3">Welcome Back</h1>
                             <p className="text-slate-500 font-bold text-sm uppercase tracking-wide">Secure Access to HealthFirst CMS</p>
                         </div>
-
-                        {error && (
-                            <div className="mb-6 p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-start gap-3 animate-shake">
-                                <AlertCircle className="text-rose-500 shrink-0 mt-0.5" size={18} />
-                                <p className="text-rose-600 text-xs font-bold leading-relaxed">{error}</p>
-                            </div>
-                        )}
 
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div>
@@ -159,21 +129,12 @@ const Login: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-3 px-1">
-                                <input
-                                    type="checkbox"
-                                    id="remember"
-                                    className="w-4 h-4 rounded border-slate-200 text-blue-600 focus:ring-blue-500 transition-all cursor-pointer"
-                                />
-                                <label htmlFor="remember" className="text-[10px] font-black text-slate-500 uppercase tracking-widest cursor-pointer select-none">Remember this device</label>
-                            </div>
-
                             <button
                                 type="submit"
-                                disabled={isLoading}
-                                className={`w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 group ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                disabled={loading}
+                                className={`w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 group ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
                             >
-                                {isLoading ? (
+                                {loading ? (
                                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                 ) : (
                                     <>

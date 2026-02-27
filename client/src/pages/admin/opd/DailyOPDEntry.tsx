@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import OPDEntryForm from '../components/opd/OPDEntryForm';
+import OPDEntryForm from '../../../components/opd/OPDEntryForm';
 
 const DailyOPDEntry: React.FC = () => {
     return (

@@ -1,9 +1,9 @@
 
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import Card from '../components/ui/Card';
-import TestimonialCard from '../components/ui/TestimonialCard';
-import StatCounter from '../components/ui/StatCounter';
+import Card from '../../components/ui/Card';
+import TestimonialCard from '../../components/ui/TestimonialCard';
+import StatCounter from '../../components/ui/StatCounter';
 
 const features = [
     {

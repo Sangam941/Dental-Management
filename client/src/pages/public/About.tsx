@@ -1,6 +1,6 @@
 
 import { ArrowRight, Smile, Heart, BadgeCheck, Scale } from 'lucide-react';
-import StatCounter from '../components/ui/StatCounter';
+import StatCounter from '../../components/ui/StatCounter';
 
 const stats = [
     { value: '50+', label: 'Years of Smiles' },
