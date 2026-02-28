@@ -17,19 +17,22 @@ const stats = [
 
 const ageRanges = ['All Ages', '0-9', '10-19', '20-29', '30-39', '40-49', '50-59', '60-69', '70-79', '80+'];
 
-import { DUMMY_PATIENTS as initialPatients } from '../../../data/dummyData';
-
 import { useNavigate } from 'react-router-dom';
 import { usePatientStore } from '../../../store/patientStore';
 import type { PatientPayload } from '../../../types';
 import { useDoctorStore } from '../../../store/doctorStore';
 
 const Patients: React.FC = () => {
+
+    // zustand
+    const { fetchPatients, patients, updatePatient, deletePatient } = usePatientStore()
+    const { doctors } = useDoctorStore()
+
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedGender, setSelectedGender] = useState('All Gender');
     const [selectedAge, setSelectedAge] = useState('All Ages');
-    const [patientList] = useState(initialPatients);
+    const [patientList] = useState(patients);
     const [Id, setId] = useState<string>('')
     const [doctorId, setDoctorId] = useState<string>('')
 
@@ -46,9 +49,6 @@ const Patients: React.FC = () => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
     const [gender, setGender] = useState('')
 
-    // zustand
-    const { fetchPatients, patients, updatePatient, deletePatient } = usePatientStore()
-    const { doctors } = useDoctorStore()
 
     const filteredPatients = patients?.filter(patient => {
         const matchesSearch = patient?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -264,7 +264,7 @@ const Patients: React.FC = () => {
                                     </td>
                                     <td className="px-8 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            
+
                                             <button
                                                 onClick={() => openEditModal(patient)}
                                                 className="p-2 text-admin-text-faint hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer">
