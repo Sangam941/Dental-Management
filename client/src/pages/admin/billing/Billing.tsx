@@ -24,6 +24,30 @@ const filterNonZeroBilling = (patients: BillingPayload[]) =>
     Number(record.expenseAmount) > 0
   );
 
+// Utility function for row color logic
+const getRowStatusClass = (record: BillingPayload) => {
+  const total = Number(record.totalAmount) || 0;
+  const paid = Number(record.paidAmount) || 0;
+  const due = Number(record.dueAmount) || 0;
+
+  // Fully paid (including totalAmount==paidAmount, dueAmount===0)
+  if (total > 0 && paid >= total && due === 0) {
+    return ""; // white/normal
+  }
+
+  // Payment is due (has unfulfilled due) and not paid in full: RED
+  if (due > 0 && paid === 0) {
+    return "bg-red-300"; // light red bg
+  }
+
+  // Paid some amount, but not full (and due==0): PARTIAL: BLUE
+  if (paid > 0 && paid < total) {
+    return "bg-blue-300"; // light blue bg
+  }
+
+  // If unpaid (paid==0, due==0): no coloring
+  return "";
+};
 
 const Billing = () => {
   // zustand
@@ -56,11 +80,9 @@ const Billing = () => {
   const printTableRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
 
-
   useEffect(() => {
     fetchBillingRecords()
   }, [])
-
 
   // Search patients
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -120,7 +142,6 @@ const Billing = () => {
     XLSX.utils.book_append_sheet(wb, ws, "BillingRecords");
     XLSX.writeFile(wb, "billing_records.xlsx");
   };
-
 
   // Totals: for reporting/exports
   const getTotals = () => {
@@ -208,14 +229,6 @@ const Billing = () => {
     ]);
 
     const totals = getTotals();
-    // const totalRow = [
-    //   { content: 'Total Amount:', colSpan: 7, styles: { fontStyle: 'bold', textColor: [0, 0, 160] } },
-    //   totals.totalAmount.toLocaleString(),
-    //   "",
-    //   totals.counter.toLocaleString(),
-    //   totals.online.toLocaleString(),
-    //   totals.expenses.toLocaleString()
-    // ];
 
     // @ts-ignore-next-line
     autoTable(doc, {
@@ -268,16 +281,11 @@ const Billing = () => {
       ''
     );
     // 2. Remove the Actions td from each row in tbody
-    //    This regex will match a <td ...>...</td> matching class "text-center" or containing View/Edit buttons, but safest is just remove the last <td> in each row (as Actions is always last column)
     printContents = printContents.replace(
       /<td([^>]*)class="[^"]*text-center[^"]*"[^>]*>[\s\S]*?<\/td>/g,
       ''
     );
 
-    // If not matched by that, as fallback remove last td in every row in tbody (if rows have 13 cols, we want to remove last):
-    // But above should suffice for your markup.
-
-    // Header HTML
     const now = new Date();
     const dateStr = `Date: ${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
     const monthStr = `Month: ${(now.getMonth() + 1).toString().padStart(2, '0')}`;
@@ -333,6 +341,118 @@ const Billing = () => {
     }
   };
 
+  // Print Single Bill Handler
+  const handlePrintSingleBill = (billing: BillingPayload) => {
+    // Prepare a print window with nice formatting for the bill, including header, patient info, and billing breakdown
+    const now = new Date();
+    const dateStr = `Date: ${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
+    const monthStr = `Month: ${(now.getMonth() + 1).toString().padStart(2, '0')}`;
+
+    // Print content HTML
+    const printHeaderHTML = `
+      <div style="text-align: center; margin-bottom:10px;">
+        <div style="font-weight: bold; font-size: 22px;">Pristine Dental & Maxillofacial Center Pvt.Ltd.</div>
+        <div style="font-size:16px;font-weight:600;margin-bottom:3px;">Billing Receipt</div>
+      </div>
+      <div style="text-align: right; font-size: 13px; margin-bottom: 8px; font-weight: 600;">
+        ${dateStr} &nbsp; ${monthStr}
+      </div>
+      <hr>
+    `;
+
+    const patientInfoHTML = `
+      <div style="margin-bottom:12px;font-size:15px;">
+        <table style="width:100%;font-size:14px;">
+          <tbody>
+            <tr>
+              <td><strong>Patient:</strong></td>
+              <td>${billing.opdEntry?.fullName ?? '--'}</td>
+              <td><strong>Reg. No:</strong></td>
+              <td>${billing.id}</td>
+            </tr>
+            <tr>
+              <td><strong>Age:</strong></td>
+              <td>${billing.opdEntry?.age ?? '--'}</td>
+              <td><strong>Phone:</strong></td>
+              <td>${billing.opdEntry?.phoneNumber ?? '--'}</td>
+            </tr>
+            <tr>
+              <td><strong>Address:</strong></td>
+              <td colspan="3">${billing.opdEntry?.address ?? '--'}</td>
+            </tr>
+            <tr>
+              <td><strong>Treatment:</strong></td>
+              <td colspan="3">${billing.opdEntry?.treatment ?? '--'}</td>
+            </tr>
+            <tr>
+              <td><strong>Doctor:</strong></td>
+              <td colspan="3">${billing.opdEntry?.doctor?.fullName ?? billing.opdEntry?.doctorId ?? '--'}</td>
+            </tr>
+            <tr>
+              <td><strong>Entry Date:</strong></td>
+              <td colspan="3">${billing.opdEntry?.entryDate ?? '--'}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    const billingTableHTML = `
+      <div style="margin-bottom:0;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr>
+              <th style="border:1px solid #ccc;padding:7px;text-align:left;">Total</th>
+              <th style="border:1px solid #ccc;padding:7px;text-align:left;">Payment Option</th>
+              <th style="border:1px solid #ccc;padding:7px;text-align:left;">Paid</th>
+              <th style="border:1px solid #ccc;padding:7px;text-align:left;">Due</th>
+              <th style="border:1px solid #ccc;padding:7px;text-align:left;">Expenses</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border:1px solid #ccc;padding:7px;">Rs. ${(billing.totalAmount ?? 0).toLocaleString()}</td>
+              <td style="border:1px solid #ccc;padding:7px;">${billing.paymentMethod}</td>
+              <td style="border:1px solid #ccc;padding:7px;">Rs. ${(billing.paidAmount ?? 0).toLocaleString()}</td>
+              <td style="border:1px solid #ccc;padding:7px;">Rs. ${(billing.dueAmount ?? 0).toLocaleString()}</td>
+              <td style="border:1px solid #ccc;padding:7px;">Rs. ${(billing.expenseAmount ?? 0).toLocaleString()}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    const billFooterHTML = `
+      <div style="margin-top:24px;text-align:center;font-size:13px;color:#333;">
+        Thank you for your visit!
+      </div>
+    `;
+
+    const style = `
+      <style>
+        body { font-family: Arial, Helvetica, sans-serif; color: #1f2937; padding:0 12px; }
+        table { border-collapse: collapse; }
+        th, td { font-size: 14px; }
+        hr { margin: 13px 0; }
+      </style>
+    `;
+    const win = window.open('', '_blank', 'width=650,height=550');
+    if (win) {
+      win.document.write(`<html><head><title>Print Single Bill</title>${style}</head><body>`);
+      win.document.write(printHeaderHTML);
+      win.document.write(patientInfoHTML);
+      win.document.write(billingTableHTML);
+      win.document.write(billFooterHTML);
+      win.document.write('</body></html>');
+      win.document.close();
+      win.focus();
+      setTimeout(() => {
+        win.print();
+        // win.close();
+      }, 250);
+    }
+  };
+
   // Actions – view, edit, delete
 
   // --- VIEW ---
@@ -348,9 +468,7 @@ const Billing = () => {
 
   const handleEdit = () => {
     setEditModalPatient(false);
-    // You should implement an updatePatient function similar to updateDoctor, passing the updated patient data.
     if (editPatientDetails?.id) {
-      // Ensure numeric billing fields are cast to numbers before sending to the API
       const updatedDetails = {
         paymentMethod: editPatientDetails.paymentMethod,
         totalAmount: Number(editPatientDetails.totalAmount),
@@ -363,7 +481,6 @@ const Billing = () => {
     }
   };
 
-
   // --- DELETE ---
   const openDeleteModal = (id:string) => {
     setDeleteModalPatientId(id)
@@ -373,8 +490,7 @@ const Billing = () => {
   const handleDelete = () => {
     setIsDeleteModalOpen(false);
     deleteBillingRecord(deleteModalPatientId);
-};
-
+  };
 
   const filteredBillingRecords = filterNonZeroBilling(billingRecords);
 
@@ -620,50 +736,54 @@ const Billing = () => {
                   </td>
                 </tr>
               ) : (
-                filteredBillingRecords.map((record, idx) => (
-                  <tr key={idx} className="hover:bg-blue-50 transition">
-                    <td className="py-1.5 px-3 border-b border-admin-border">{idx + 1}</td>
-                    <td className="py-1.5 px-3 border-b border-admin-border">{record.opdEntry?.fullName}</td>
-                    <td className="py-1.5 px-3 border-b border-admin-border">{record.opdEntry?.age}</td>
-                    <td className="py-1.5 px-3 border-b border-admin-border">{record.opdEntry?.address}</td>
-                    <td className="py-1.5 px-3 border-b border-admin-border">{record.opdEntry?.phoneNumber}</td>
-                    <td className="py-1.5 px-3 border-b border-admin-border">{record.opdEntry?.treatment}</td>
-                    <td className="py-1.5 px-3 border-b border-admin-border">{record?.opdEntry?.doctor?.fullName}</td>
-                    <td className="py-1.5 px-3 border-b border-admin-border">{record.totalAmount}</td>
-                    <td className="py-1.5 px-3 border-b border-admin-border">{record.paymentMethod}</td>
-                    <td className="py-1.5 px-3 border-b border-admin-border">{record.paidAmount}</td>
-                    <td className="py-1.5 px-3 border-b border-admin-border">{record.dueAmount}</td>
-                    <td className="py-1.5 px-3 border-b border-admin-border">{record.expenseAmount}</td>
-                    <td className="py-1.5 px-3 border-b border-admin-border text-center">
-                      <div className="flex gap-1 justify-center">
-                        <button
-                          title="View"
-                          type="button"
-                          onClick={() => handleViewPatient(record)}
-                          className="p-2 text-admin-text-faint hover:text-admin-primary hover:bg-blue-50 rounded-xl transition-all cursor-pointer"
-                        >
-                          <Eye size={18} />
-                        </button>
-                        <button
-                          title="Edit"
-                          type="button"
-                          onClick={() => openEditModal(record)}
-                          className="p-2 text-admin-text-faint hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer"
-                        >
-                          <Pencil size={18} />
-                        </button>
-                        <button
-                          title="Delete"
-                          type="button"
-                          onClick={() => record.id && openDeleteModal(record.id)}
-                          className="p-2 text-admin-text-faint hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all cursor-pointer"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                filteredBillingRecords.map((record, idx) => {
+                  // Determine background color based on payment status
+                  const rowClass = getRowStatusClass(record);
+                  return (
+                    <tr key={idx} className={`transition ${rowClass}`}>
+                      <td className="py-1.5 px-3 border-b border-admin-border">{idx + 1}</td>
+                      <td className="py-1.5 px-3 border-b border-admin-border">{record.opdEntry?.fullName}</td>
+                      <td className="py-1.5 px-3 border-b border-admin-border">{record.opdEntry?.age}</td>
+                      <td className="py-1.5 px-3 border-b border-admin-border">{record.opdEntry?.address}</td>
+                      <td className="py-1.5 px-3 border-b border-admin-border">{record.opdEntry?.phoneNumber}</td>
+                      <td className="py-1.5 px-3 border-b border-admin-border">{record.opdEntry?.treatment}</td>
+                      <td className="py-1.5 px-3 border-b border-admin-border">{record?.opdEntry?.doctor?.fullName}</td>
+                      <td className="py-1.5 px-3 border-b border-admin-border">{record.totalAmount}</td>
+                      <td className="py-1.5 px-3 border-b border-admin-border">{record.paymentMethod}</td>
+                      <td className="py-1.5 px-3 border-b border-admin-border">{record.paidAmount}</td>
+                      <td className="py-1.5 px-3 border-b border-admin-border">{record.dueAmount}</td>
+                      <td className="py-1.5 px-3 border-b border-admin-border">{record.expenseAmount}</td>
+                      <td className="py-1.5 px-3 border-b border-admin-border text-center">
+                        <div className="flex gap-1 justify-center">
+                          <button
+                            title="View"
+                            type="button"
+                            onClick={() => handleViewPatient(record)}
+                            className="p-2 text-admin-text hover:text-admin-primary hover:bg-blue-50 rounded-xl transition-all cursor-pointer"
+                          >
+                            <Eye size={18} />
+                          </button>
+                          <button
+                            title="Edit"
+                            type="button"
+                            onClick={() => openEditModal(record)}
+                            className="p-2 text-admin-text hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer"
+                          >
+                            <Pencil size={18} />
+                          </button>
+                          <button
+                            title="Delete"
+                            type="button"
+                            onClick={() => record.id && openDeleteModal(record.id)}
+                            className="p-2 text-admin-text hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all cursor-pointer"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })
               )}
             </tbody>
           </table>
@@ -758,7 +878,7 @@ const Billing = () => {
                 </div>
               </div>
             </div>
-            <div className="px-6 pb-5 flex justify-end pt-2 border-t border-admin-border-subtle">
+            <div className="px-6 pb-5 flex justify-end pt-2 border-t border-admin-border-subtle gap-3">
               <button
                 type="button"
                 onClick={() => setViewModalPatient(null)}
@@ -766,6 +886,13 @@ const Billing = () => {
                 tabIndex={0}
               >
                 Close
+              </button>
+              <button
+                type="button"
+                className="px-5 py-2.5 rounded-xl bg-admin-primary text-white text-xs font-bold hover:bg-admin-primary-hover transition-all"
+                onClick={() => viewModalPatient && handlePrintSingleBill(viewModalPatient)}
+              >
+                <Printer size={15} className="inline align-middle mr-1" /> Print Bill
               </button>
             </div>
           </div>
@@ -1111,7 +1238,6 @@ const Billing = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };

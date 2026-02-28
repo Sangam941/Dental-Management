@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
     User,
     Phone,
     ChevronDown,
     Save,
     ArrowLeft,
-    Stethoscope
+    Stethoscope,
+    X,
+    Printer
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useDoctorStore } from '../../../store/doctorStore';
@@ -13,12 +15,10 @@ import { usePatientStore } from '../../../store/patientStore';
 import type { PatientPayload } from '../../../types';
 
 const AddPatient: React.FC = () => {
-
     const { doctors } = useDoctorStore()
-    // Individual form states
+    // Form and dialog states
     const [fullName, setFullName] = useState('');
     const [age, setAge] = useState('');
-    // const [gender, setGender] = useState('');
     const [phone, setPhone] = useState('');
     const [address, setAddress] = useState('');
     const [doctorName, setDoctorName] = useState('')
@@ -26,13 +26,29 @@ const AddPatient: React.FC = () => {
     const [dateOfAdmission, setDateOfAdmission] = useState('');
     const [caseType, setCaseType] = useState('');
     const [gender, setGender] = useState('')
-
     const [doctorId, setDoctorId] = useState<string>('')
+    const [showTicket, setShowTicket] = useState(false);
+    const [createdPatientInfo, setCreatedPatientInfo] = useState<{
+        fullName: string;
+        phone: string;
+        date: string;
+        doctorName: string;
+        treatment: string;
+    } | null>(null);
+
+    // For printable ticket
+    const ticketRef = useRef<HTMLDivElement>(null);
 
     const { addPatient } = usePatientStore()
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Find selected doctor object to get latest fullName (in case not picked via dropdown)
+        const selectedDoc =
+            doctors?.find(doctor => doctor.id === doctorId) ||
+            doctors?.find(doctor => doctor.fullName === doctorName);
+
         const patientData: PatientPayload = {
             entryDate: dateOfAdmission,
             gender: gender,
@@ -45,8 +61,19 @@ const AddPatient: React.FC = () => {
             doctorId: doctorId,
         }
 
-        addPatient(patientData)
+        addPatient(patientData);
 
+        // After patient created, show OPD ticket info
+        setCreatedPatientInfo({
+            fullName,
+            phone,
+            date: dateOfAdmission,
+            doctorName: selectedDoc?.fullName || doctorName,
+            treatment: chronicConditions,
+        });
+        setShowTicket(true);
+
+        // Clear form states
         setFullName('');
         setAge('');
         setPhone('');
@@ -56,11 +83,107 @@ const AddPatient: React.FC = () => {
         setDateOfAdmission('');
         setCaseType('');
         setDoctorId('');
+        setGender('');
+    };
 
+    const handleCloseTicket = () => {
+        setShowTicket(false);
+        setCreatedPatientInfo(null);
+    };
+
+    // Print only the ticket content
+    const handlePrint = () => {
+        if (ticketRef.current) {
+            const printContents = ticketRef.current.innerHTML;
+            const win = window.open('', '', 'width=600,height=600');
+            if (win) {
+                win.document.write(`
+                    <html>
+                        <head>
+                            <title>OPD Ticket</title>
+                            <style>
+                                body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+                                .opd-ticket { border: 1px dashed #2159d6; border-radius: 10px; margin: 18px; padding: 32px 24px; max-width: 350px; }
+                                .opd-title { color: #2159d6; font-size: 2rem; font-weight: bold; text-align: center; margin-bottom: 1.5rem; }
+                                .row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+                                .label { font-weight: bold; }
+                                .value { font-weight: 500; }
+                                .line { border-bottom: 1px solid #D1D5DB; margin: 8px 0; }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="opd-ticket">
+                                ${printContents}
+                            </div>
+                            <script>
+                                setTimeout(function() { window.print(); window.close(); }, 200);
+                            </script>
+                        </body>
+                    </html>
+                `);
+                win.document.close();
+            }
+        }
     };
 
     return (
         <div className="px-8 py-2 max-w-[1200px] mx-auto space-y-8 pb-12">
+            {/* OPD Ticket Modal */}
+            {showTicket && createdPatientInfo && (
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-xl max-w-[400px] w-full p-8 text-center relative animate-fade-in">
+                        <button
+                            onClick={handleCloseTicket}
+                            className="absolute top-2 right-2 text-admin-text-muted hover:text-admin-primary"
+                            aria-label="Close Ticket"
+                        >
+                            <X size={22} />
+                        </button>
+                        <div ref={ticketRef}>
+                            <div className="opd-title text-2xl font-bold text-admin-primary mb-4">OPD Ticket</div>
+                            <div className="text-left text-[1rem]">
+                                <div className="row flex justify-between mb-2 border-b pb-2">
+                                    <span className="label font-semibold text-admin-text">Patient:</span>
+                                    <span className="value font-medium">{createdPatientInfo.fullName}</span>
+                                </div>
+                                <div className="row flex justify-between mb-2 border-b pb-2">
+                                    <span className="label font-semibold text-admin-text">Phone:</span>
+                                    <span className="value font-medium">{createdPatientInfo.phone}</span>
+                                </div>
+                                <div className="row flex justify-between mb-2 border-b pb-2">
+                                    <span className="label font-semibold text-admin-text">Date:</span>
+                                    <span className="value font-medium">{createdPatientInfo.date}</span>
+                                </div>
+                                <div className="row flex justify-between mb-2 border-b pb-2">
+                                    <span className="label font-semibold text-admin-text">Doctor:</span>
+                                    <span className="value font-medium">{createdPatientInfo.doctorName}</span>
+                                </div>
+                                <div className="row flex justify-between mb-2">
+                                    <span className="label font-semibold text-admin-text">Treatment:</span>
+                                    <span className="value font-medium">{createdPatientInfo.treatment}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex gap-3 justify-center mt-6">
+                            <button
+                                className="px-8 py-2 rounded-xl bg-admin-primary text-white font-bold hover:bg-admin-primary-hover transition flex gap-2 items-center"
+                                onClick={handlePrint}
+                                type="button"
+                            >
+                                <Printer size={18} />
+                                Print Ticket
+                            </button>
+                            <button
+                                className="px-6 py-2 rounded-xl border border-admin-border font-bold text-admin-text-muted hover:bg-admin-surface transition"
+                                onClick={handleCloseTicket}
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <Link
                 to="/admin/patients"
                 className="flex items-center gap-1 group w-fit -mb-1 -ml-2"
@@ -76,7 +199,7 @@ const AddPatient: React.FC = () => {
             {/* Header */}
             <div>
                 <h1 className="text-3xl admin-title">Register New Patient</h1>
-                <p className="text-admin-text-muted mt-1 font-medium">Enter patient details to create a new record in the system. All fields marked with * are mandatory.</p>
+                <p className="text-admin-text-muted mt-1 font-medium">Enter patient details to create a new record in the system. All fields marked with <span className='text-red-500 text-md'>*</span> are mandatory.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-8">
@@ -205,7 +328,6 @@ const AddPatient: React.FC = () => {
                                         value={doctorName}
                                         onChange={e => {
                                             setDoctorName(e.target.value);
-                                            // Find the department by name to get its id
                                             const selectedDoc = doctors?.find(doctor => doctor.fullName === e.target.value);
                                             if (selectedDoc) {
                                                 setDoctorId(selectedDoc?.id);
@@ -215,16 +337,13 @@ const AddPatient: React.FC = () => {
                                         required
                                     >
                                         <option value="">Select attending doctor</option>
-                                        {doctors?.map((doctor, idx) => {
-                                            return (
-                                                <option key={idx} value={doctor.fullName}>{doctor.fullName}</option>
-                                            )
-                                        })}
+                                        {doctors?.filter(doctor => doctor.isActive).map((doctor, idx) => (
+                                            <option key={idx} value={doctor.fullName}>{doctor.fullName}</option>
+                                        ))}
                                     </select>
                                     <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-admin-text-faint pointer-events-none" />
                                 </div>
                             </div>
-
                             <div className="space-y-1.5">
                                 <label className="admin-label">treatment / diagnosis</label>
                                 <input

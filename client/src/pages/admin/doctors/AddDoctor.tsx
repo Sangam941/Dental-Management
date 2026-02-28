@@ -101,7 +101,7 @@ const AddDoctor: React.FC = () => {
                                 required
                             >
                                 <option value="">Select Specialty</option>
-                                {departments.map((dept) => (
+                                {departments?.filter(dpt=> dpt.isActive).map((dept) => (
                                     <option key={dept.id} value={dept.departmentName}>{dept.departmentName}</option>
                                 ))}
                             </select>
