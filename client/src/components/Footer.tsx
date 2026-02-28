@@ -11,7 +11,7 @@ const Footer = () => {
                         <div className="w-10 h-10 bg-site-primary rounded-lg flex items-center justify-center">
                             <Smile className="text-white w-6 h-6" />
                         </div>
-                        <span className="text-2xl font-bold tracking-tight text-white">Prestin Dental</span>
+                        <span className="text-2xl font-bold tracking-tight text-white">Prestine Dental</span>
                     </div>
                     <p className="leading-relaxed">
                         Perfecting your smile with excellence since 1974. Trust us with your family's dental health and wellness journey.
