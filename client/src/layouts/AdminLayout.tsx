@@ -17,11 +17,11 @@ const AdminLayout: React.FC = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const navItems = [
-        {
-            name: 'Dashboard',
-            icon: <LayoutDashboard size={20} />,
-            path: '/admin/dashboard'
-        },
+        // {
+        //     name: 'Dashboard',
+        //     icon: <LayoutDashboard size={20} />,
+        //     path: '/admin/dashboard'
+        // },
         {
             name: 'Patient Records',
             icon: <Users size={20} />,
