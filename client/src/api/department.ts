@@ -8,15 +8,15 @@ export const getDepartments = async () => {
 
 export const createDepartment = async (departmentName: string) => {
     const data = await api.post('/departments', { departmentName });
-    // console.log(data)
-    return data;
+    // console.log(data.data.department)
+    return data.data.department;
 };
 
 
 export const updateDepartment = async (id: string, departmentName: string, isActive: boolean) => {
     const data = await api.patch(`/departments/${id}`, {departmentName, isActive});
-    // console.log(data)
-    return data;
+    // console.log(data.data.department)
+    return data.data.department;
 };
 
 export const deleteDepartmentApi = async (id: string) => {

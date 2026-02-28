@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Plus, User, ArrowRight, FileDown, FileText, Printer, Eye, Trash2, Pencil, ChevronDown, Calendar, Phone, MapPin, DollarSign } from 'lucide-react';
+import { Search, Plus, User, ArrowRight, FileDown, FileText, Printer, Eye, Trash2, Pencil, ChevronDown, Calendar, Phone, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -153,7 +153,7 @@ const Billing = () => {
     let y = 20;
 
     doc.setFontSize(18);
-    doc.setFont(undefined, "bold");
+    doc.setFont("helvetica", "bold");
     const headerText = "Pristine Dental & Maxillofacial Center Pvt.Ltd.";
     const headerWidth = doc.getTextWidth(headerText);
     doc.text(headerText, (pageWidth - headerWidth) / 2, y);
@@ -164,7 +164,7 @@ const Billing = () => {
     );
     y += 10;
     doc.setFontSize(15);
-    doc.setFont(undefined, "normal");
+    doc.setFont("helvetica", "normal");
     doc.text("Daily OPD BOOK", pageWidth / 2, y, { align: 'center' });
     // Date and Month (top-right)
     const now = new Date();
@@ -208,33 +208,46 @@ const Billing = () => {
     ]);
 
     const totals = getTotals();
-    const totalRow = [
-      { content: 'Total Amount:', colSpan: 7, styles: { fontStyle: 'bold', textColor: [0, 0, 160] } },
-      totals.totalAmount.toLocaleString(),
-      "",
-      totals.counter.toLocaleString(),
-      totals.online.toLocaleString(),
-      totals.expenses.toLocaleString()
-    ];
+    // const totalRow = [
+    //   { content: 'Total Amount:', colSpan: 7, styles: { fontStyle: 'bold', textColor: [0, 0, 160] } },
+    //   totals.totalAmount.toLocaleString(),
+    //   "",
+    //   totals.counter.toLocaleString(),
+    //   totals.online.toLocaleString(),
+    //   totals.expenses.toLocaleString()
+    // ];
 
     // @ts-ignore-next-line
     autoTable(doc, {
       head: [tableColumn],
-      body: tableRows,
+      body: tableRows.map(row =>
+        row.map(cell =>
+          cell === undefined ? '' : cell // Replace undefined with an empty string for type-safety
+        )
+      ),
       startY: y + 5,
       theme: 'grid',
       didDrawPage: (data) => {
         autoTable(doc, {
-          body: [totalRow],
-          startY: data.cursor.y + 2,
+          body: [
+            [
+              { content: 'Total Amount:', colSpan: 7, styles: { fontStyle: 'bold' as const, textColor: [0, 0, 160] } },
+              totals.totalAmount.toLocaleString(),
+              "",
+              totals.counter.toLocaleString(),
+              totals.online.toLocaleString(),
+              totals.expenses.toLocaleString()
+            ]
+          ],
+          startY: (data as any)?.cursor?.y ? (data as any).cursor.y + 2 : 0, // Defensive for possibly null cursor
           theme: 'plain',
-          styles: { fontStyle: 'bold', halign: 'right' },
+          styles: { fontStyle: 'bold' as const, halign: 'right' as const },
           columnStyles: {
-            0: { halign: 'right' },
-            7: { halign: 'right' },
-            9: { halign: 'right' },
-            10: { halign: 'right' },
-            11: { halign: 'right' }
+            0: { halign: 'right' as const },
+            7: { halign: 'right' as const },
+            9: { halign: 'right' as const },
+            10: { halign: 'right' as const },
+            11: { halign: 'right' as const }
           }
         });
       }
@@ -642,7 +655,7 @@ const Billing = () => {
                         <button
                           title="Delete"
                           type="button"
-                          onClick={() => openDeleteModal(record.id)}
+                          onClick={() => record.id && openDeleteModal(record.id)}
                           className="p-2 text-admin-text-faint hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all cursor-pointer"
                         >
                           <Trash2 size={18} />
@@ -772,7 +785,7 @@ const Billing = () => {
                   <Pencil size={20} className="text-admin-primary" />
                 </div>
                 <div>
-                  <h2 className="text-base font-black text-admin-text">Edit Patient</h2>
+                  <h2 className="text-base font-black text-admin-text">Edit Patient Bill</h2>
                 </div>
               </div>
               <button
@@ -921,7 +934,7 @@ const Billing = () => {
                   id="editTotalAmount"
                   name="editTotalAmount"
                   value={
-                    editPatientDetails && editPatientDetails.totalAmount === 0 && editPatientDetails.__totalAmountFocused
+                    editPatientDetails && editPatientDetails.totalAmount === 0 && totalAmountFocused
                       ? ''
                       : editPatientDetails?.totalAmount ?? ''
                   }
@@ -955,20 +968,12 @@ const Billing = () => {
                   id="editPaidAmount"
                   name="editPaidAmount"
                   value={
-                    editPatientDetails && editPatientDetails.paidAmount === 0 && editPatientDetails.__paidAmountFocused
+                    editPatientDetails && editPatientDetails.paidAmount === 0 && paidAmountFocused
                       ? ''
                       : editPatientDetails?.paidAmount ?? ''
                   }
-                  onFocus={() =>
-                    setEditPatientDetails(prev =>
-                      prev ? { ...prev, __paidAmountFocused: true } : prev
-                    )
-                  }
-                  onBlur={() =>
-                    setEditPatientDetails(prev =>
-                      prev ? { ...prev, __paidAmountFocused: false } : prev
-                    )
-                  }
+                  onFocus={() => setPaidAmountFocused(true)}
+                  onBlur={() => setPaidAmountFocused(false)}
                   onChange={e =>
                     setEditPatientDetails(prev =>
                       prev
@@ -989,20 +994,12 @@ const Billing = () => {
                   id="editDueAmount"
                   name="editDueAmount"
                   value={
-                    editPatientDetails && editPatientDetails.dueAmount === 0 && editPatientDetails.__dueAmountFocused
+                    editPatientDetails && editPatientDetails.dueAmount === 0 && dueAmountFocused
                       ? ''
                       : editPatientDetails?.dueAmount ?? ''
                   }
-                  onFocus={() =>
-                    setEditPatientDetails(prev =>
-                      prev ? { ...prev, __dueAmountFocused: true } : prev
-                    )
-                  }
-                  onBlur={() =>
-                    setEditPatientDetails(prev =>
-                      prev ? { ...prev, __dueAmountFocused: false } : prev
-                    )
-                  }
+                  onFocus={() => setDueAmountFocused(true)}
+                  onBlur={() => setDueAmountFocused(false)}
                   onChange={e =>
                     setEditPatientDetails(prev =>
                       prev
@@ -1023,20 +1020,12 @@ const Billing = () => {
                   id="editExpenseAmount"
                   name="editExpenseAmount"
                   value={
-                    editPatientDetails && editPatientDetails.expenseAmount === 0 && editPatientDetails.__expenseAmountFocused
+                    editPatientDetails && editPatientDetails.expenseAmount === 0 && expenseAmountFocused
                       ? ''
                       : editPatientDetails?.expenseAmount ?? ''
                   }
-                  onFocus={() =>
-                    setEditPatientDetails(prev =>
-                      prev ? { ...prev, __expenseAmountFocused: true } : prev
-                    )
-                  }
-                  onBlur={() =>
-                    setEditPatientDetails(prev =>
-                      prev ? { ...prev, __expenseAmountFocused: false } : prev
-                    )
-                  }
+                  onFocus={() => setExpenseAmountFocused(true)}
+                  onBlur={() => setExpenseAmountFocused(false)}
                   onChange={e =>
                     setEditPatientDetails(prev =>
                       prev
@@ -1100,7 +1089,7 @@ const Billing = () => {
               <div className="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto">
                 <Trash2 size={24} className="text-rose-500" />
               </div>
-              <h2 className="text-base font-black text-admin-text">Delete Department?</h2>
+              <h2 className="text-base font-black text-admin-text">Delete Patient Bill?</h2>
               <p className="text-xs font-bold text-admin-text-muted">
                 Are you sure you want to delete <span className="text-admin-text">{selectedPatient?.fullName}</span>? This action cannot be undone.
               </p>

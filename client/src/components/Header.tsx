@@ -20,7 +20,7 @@ const Header = () => {
                             <Smile className="text-white w-6 h-6" />
                         </div>
                         <span className="text-2xl font-bold tracking-tight text-site-text">
-                            Prestin <span className="text-site-primary">Dental</span>
+                            Prestine <span className="text-site-primary">Dental</span>
                         </span>
                     </Link>
                 </div>
@@ -33,10 +33,10 @@ const Header = () => {
                     <Link to="/services" className={`font-medium ${isActive('/services')}`}>Services</Link>
                     <Link to="/contact" className={`font-medium ${isActive('/contact')}`}>Contact</Link>
                     <Link
-                        to="/appointment"
+                        to="/admin/login"
                         className="bg-site-primary text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-600 transition-all shadow-lg shadow-site-primary/20"
                     >
-                        Book Appointment
+                        Admin Login
                     </Link>
                 </div>
 
@@ -57,11 +57,11 @@ const Header = () => {
                     <Link to="/services" className="block font-medium hover:text-site-primary" onClick={() => setIsMenuOpen(false)}>Services</Link>
                     <Link to="/contact" className="block font-medium hover:text-site-primary" onClick={() => setIsMenuOpen(false)}>Contact</Link>
                     <Link
-                        to="/appointment"
+                        to="/admin/login"
                         className="block w-full text-center bg-site-primary text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-600 transition-all"
                         onClick={() => setIsMenuOpen(false)}
                     >
-                        Book Appointment
+                        Admin Login
                     </Link>
                 </div>
             )}

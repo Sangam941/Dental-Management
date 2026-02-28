@@ -149,6 +149,16 @@ const Departments: React.FC = () => {
 
             {/* Search & Filter */}
             <div className="flex flex-col lg:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl border border-admin-border shadow-sm">
+                <div className="relative w-full lg:w-80">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-admin-text-faint" size={16} />
+                    <input
+                        type="text"
+                        placeholder="Search by name, ID..."
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        className="w-full pl-11 pr-4 py-2.5 bg-admin-surface border border-admin-border rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-admin-primary/20 transition-all"
+                    />
+                </div>
                 <div className="relative w-full lg:w-48">
                     <select
                         value={statusFilter}
@@ -159,16 +169,6 @@ const Departments: React.FC = () => {
                         <option value="Active">Active</option>
                         <option value="Inactive">Inactive</option>
                     </select>
-                </div>
-                <div className="relative w-full lg:w-80">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-admin-text-faint" size={16} />
-                    <input
-                        type="text"
-                        placeholder="Search by name, ID..."
-                        value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
-                        className="w-full pl-11 pr-4 py-2.5 bg-admin-surface border border-admin-border rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-admin-primary/20 transition-all"
-                    />
                 </div>
             </div>
 

@@ -15,20 +15,10 @@ import { useDoctorStore } from '../../../store/doctorStore';
 import type { Doctor } from '../../../types';
 
 
-const getStatusColor = (status: string) => {
-    switch (status) {
-        case 'On Duty': return 'bg-emerald-500';
-        case 'Off Duty': return 'bg-slate-400';
-        case 'Break': return 'bg-amber-500';
-        case 'On Call': return 'bg-purple-500';
-        default: return 'bg-slate-300';
-    }
-};
-
 const ManageDoctors: React.FC = () => {
 
     // zustand store 
-    const { doctors, isLoading, fetchDoctors, deleteDoctor, updateDoctor } = useDoctorStore();
+    const { doctors, fetchDoctors, deleteDoctor, updateDoctor } = useDoctorStore();
 
     const [selectedDept, setSelectedDept] = useState('All Departments');
     const [selectGender, setSelectGender] = useState('All Gender')
@@ -42,6 +32,7 @@ const ManageDoctors: React.FC = () => {
 
     const [editFullName, setEditFullName] = useState('')
     const [editIsActive, setEditIsActive] = useState(false)
+    const [doctorDept, setDoctorDept] = useState('')
 
     // const toggleActiveStatus = (id: string) => {
     //     setDoctorList(prev => prev.map(doc =>
@@ -75,6 +66,7 @@ const ManageDoctors: React.FC = () => {
         setEditFullName(doctor.fullName);
         setGender(doctor.gender)
         setEditIsActive(doctor.isActive);
+        setDoctorDept(doctor?.department?.departmentName)
 
         setIsEditModalOpen(true);
     };
@@ -86,7 +78,7 @@ const ManageDoctors: React.FC = () => {
 
     // --- DELETE ---
     const openDeleteModal = (id: String) => {
-        setId(id);
+        setId(String(id));
         setIsDeleteModalOpen(true);
     };
 
@@ -281,8 +273,8 @@ const ManageDoctors: React.FC = () => {
                                     <Pencil size={20} className="text-admin-primary" />
                                 </div>
                                 <div>
-                                    <h2 className="text-base font-black text-admin-text">Edit Department</h2>
-                                    <p className="text-[10px] font-bold text-admin-text-faint">{selectedDept.id}</p>
+                                    <h2 className="text-base font-black text-admin-text">Edit Doctor</h2>
+                                    <p className="text-[10px] font-bold text-admin-text-faint">{doctorDept}</p>
                                 </div>
                             </div>
                             <button
@@ -375,7 +367,7 @@ const ManageDoctors: React.FC = () => {
                             </div>
                             <h2 className="text-base font-black text-admin-text">Delete Department?</h2>
                             <p className="text-xs font-bold text-admin-text-muted">
-                                Are you sure you want to delete <span className="text-admin-text">{selectedDept.name}</span>? This action cannot be undone.
+                                Are you sure you want to delete <span className="text-admin-text">{editFullName}</span>? This action cannot be undone.
                             </p>
                         </div>
                         <div className="px-6 py-4 border-t border-admin-border-subtle flex justify-end gap-3">

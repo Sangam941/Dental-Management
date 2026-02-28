@@ -7,8 +7,7 @@ import {
     EyeOff,
     ArrowRight,
     ShieldCheck,
-    Activity,
-    AlertCircle
+    Activity
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 // import { login as loginApi } from '../api/auth';
@@ -47,7 +46,7 @@ const Login: React.FC = () => {
                             <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30">
                                 <Activity className="text-white" size={28} />
                             </div>
-                            <span className="text-3xl font-black text-white tracking-tight">Prestin <span className="opacity-70">Dental</span></span>
+                            <span className="text-3xl font-black text-white tracking-tight">Prestine <span className="opacity-70">Dental</span></span>
                         </div>
 
                         <h2 className="text-5xl font-black text-white leading-[1.1] mb-6">
@@ -138,7 +137,7 @@ const Login: React.FC = () => {
                                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                 ) : (
                                     <>
-                                        Authenticate
+                                        Login
                                         <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                                     </>
                                 )}

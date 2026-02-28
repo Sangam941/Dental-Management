@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { BillingPayload, PatientPayload } from '../types';
+import type { BillingPayload } from '../types';
 import { persist } from 'zustand/middleware';
 import toast from 'react-hot-toast';
 // In a real billing store, this would import billing-specific API functions.

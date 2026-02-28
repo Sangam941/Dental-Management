@@ -2,20 +2,20 @@ import api from './axios';
 
 export const getDoctors = async () => {
     const data = await api.get('/doctors');
-    console.log(data.data.doctors);
+    // console.log(data.data.doctors);
     return data.data.doctors;
 };
 
 export const createDoctor = async (fullName: string, phoneNumber: string, gender:string, departmentId: string,) => {
     const data = await api.post('/doctors', { fullName, phoneNumber, gender, departmentId });
-    console.log(data.data.doctor)
+    // console.log(data.data.doctor)
     return data.data.doctor;
 };
 
 
 export const updateDoctor = async (id: string, fullName: string, gender:string, isActive: boolean) => {
     const data = await api.patch(`/doctors/${id}`, {fullName, gender, isActive});
-    console.log("updated data::", data.data.doctor)
+    // console.log("updated data::", data.data.doctor)
     return data.data.doctor;
 };
 

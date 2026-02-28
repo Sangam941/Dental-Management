@@ -4,14 +4,10 @@ import {
     Plus,
     Pencil,
     Trash2,
-    Eye,
     Users,
     UserPlus,
-    Flame,
     Filter,
     ChevronDown,
-    TrendingUp,
-    TrendingDown
 } from 'lucide-react';
 
 const stats = [
@@ -19,7 +15,6 @@ const stats = [
     { title: 'NEW THIS MONTH', count: '34', icon: UserPlus },
 ];
 
-const genders = ['All Genders', 'Male', 'Female', 'Other'];
 const ageRanges = ['All Ages', '0-9', '10-19', '20-29', '30-39', '40-49', '50-59', '60-69', '70-79', '80+'];
 
 import { DUMMY_PATIENTS as initialPatients } from '../../../data/dummyData';
@@ -35,7 +30,7 @@ const Patients: React.FC = () => {
     const [selectedGender, setSelectedGender] = useState('All Gender');
     const [selectedAge, setSelectedAge] = useState('All Ages');
     const [patientList] = useState(initialPatients);
-    const [Id, setId] = useState<string | undefined>('')
+    const [Id, setId] = useState<string>('')
     const [doctorId, setDoctorId] = useState<string>('')
 
     //edit states
@@ -83,7 +78,7 @@ const Patients: React.FC = () => {
 
     // --- EDIT ---
     const openEditModal = (patient: PatientPayload) => {
-        setId(patient.id);
+        setId(patient?.id ?? '');
         setfullname(patient.fullName);
         setEditAddress(patient.address);
         setEditAge(patient.age);
@@ -100,7 +95,6 @@ const Patients: React.FC = () => {
 
     const handleEdit = () => {
         setIsEditModalOpen(false);
-        // You should implement an updatePatient function similar to updateDoctor, passing the updated patient data.
         const updatedData: PatientPayload = {
             fullName: editFullName,
             age: editAge,
@@ -119,7 +113,7 @@ const Patients: React.FC = () => {
 
     // --- DELETE ---
     const openDeleteModal = (id: String) => {
-        setId(id);
+        setId(String(id));
         setIsDeleteModalOpen(true);
     };
 
@@ -270,18 +264,14 @@ const Patients: React.FC = () => {
                                     </td>
                                     <td className="px-8 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            <button
-                                                onClick={() => openEditModal(patient)}
-                                                className="p-2 text-admin-text-faint hover:text-admin-primary hover:bg-blue-50 rounded-xl transition-all cursor-pointer">
-                                                <Eye size={18} />
-                                            </button>
+                                            
                                             <button
                                                 onClick={() => openEditModal(patient)}
                                                 className="p-2 text-admin-text-faint hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer">
                                                 <Pencil size={18} />
                                             </button>
                                             <button
-                                                onClick={() => openDeleteModal(patient.id)}
+                                                onClick={() => openDeleteModal(patient.id ?? "")}
                                                 className="p-2 text-admin-text-faint hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all cursor-pointer">
                                                 <Trash2 size={18} />
                                             </button>

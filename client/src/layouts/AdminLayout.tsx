@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import {
-    LayoutDashboard,
     Users,
     Stethoscope,
     ClipboardList,
@@ -71,8 +70,8 @@ const AdminLayout: React.FC = () => {
                             <Hospital size={24} className="text-white" />
                         </div>
                         <div>
-                            <h2 className="text-xl admin-title">Prestin Dental</h2>
-                            <p className="text-[10px] font-bold text-admin-text-muted uppercase tracking-widest">Hospital Management</p>
+                            <h2 className="text-xl admin-title">Prestine Dental</h2>
+                            <p className="text-[10px] font-bold text-admin-text-muted uppercase tracking-widest">Dental Management</p>
                         </div>
                     </div>
                     {/* Close button - Mobile only */}
@@ -107,9 +106,9 @@ const AdminLayout: React.FC = () => {
                 </nav>
 
                 {/* Profile & Logout Section */}
-                <div className="border-t border-slate-100 bg-slate-100 flex flex-col items-start justify-center pb-5">
+                <div className="border-t border-slate-100 bg-slate-100 flex flex-col items-start justify-center p-5">
                     {/* User Profile Summary */}
-                    <div className="p-4 rounded-2xl flex items-center gap-3 w-full">
+                    {/* <div className="p-4 rounded-2xl flex items-center gap-3 w-full">
                         <img
                             src="/images/admin/default-profile.webp"
                             alt="User"
@@ -119,7 +118,7 @@ const AdminLayout: React.FC = () => {
                             <h4 className="text-sm font-bold text-admin-text truncate">Dr. Rajesh Kumar</h4>
                             <p className="text-[10px] font-bold text-admin-text-muted uppercase tracking-tight">Administrator</p>
                         </div>
-                    </div>
+                    </div> */}
                     <button 
                     onClick={()=>{
                         logout();
@@ -150,7 +149,13 @@ const AdminLayout: React.FC = () => {
                     {/* Desktop Date Display (Hidden on very small mobile) */}
                     <div className="hidden sm:block text-right">
                         <p className="text-[10px] font-black text-admin-text-muted uppercase tracking-widest leading-none">Today's Date</p>
-                        <p className="text-sm font-black text-admin-text mt-1 uppercase">October 24, 2023</p>
+                        <p className="text-sm font-black text-admin-text mt-1 uppercase">
+                            {new Date().toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            })}
+                        </p>
                     </div>
                 </header>
 

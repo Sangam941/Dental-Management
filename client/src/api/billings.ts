@@ -3,7 +3,7 @@ import api from './axios';
 
 export const getAllBills = async () => {
     const data = await api.get('/billings');
-    console.log(data.data.data)
+    // console.log(data.data.data)
     return data.data.data;
 };
 
