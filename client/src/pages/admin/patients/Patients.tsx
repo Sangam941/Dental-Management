@@ -6,7 +6,6 @@ import {
     Trash2,
     Users,
     UserPlus,
-    Filter,
     ChevronDown,
 } from 'lucide-react';
 

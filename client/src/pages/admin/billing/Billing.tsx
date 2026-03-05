@@ -315,8 +315,6 @@ const Billing = () => {
       r.expenseAmount.toLocaleString()
     ]);
   
-    const totals = getTotals();
-  
     // =========================
     // MAIN TABLE
     // =========================
