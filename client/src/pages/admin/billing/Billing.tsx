@@ -8,6 +8,7 @@ import { usePatientStore } from '../../../store/patientStore';
 import type { BillingPayload, PatientPayload } from '../../../types';
 import { useDoctorStore } from '../../../store/doctorStore';
 import { useBillingStore } from '../../../store/billingStore';
+import { handlePrintSingleBill } from '../../../utils/singleBillPrint';
 
 const paymentOptions = [
   { value: 'CASH', label: 'Cash' },
@@ -58,6 +59,8 @@ const Billing = () => {
   const [search, setSearch] = useState('');
   const [filteredPatients, setFilteredPatients] = useState<PatientPayload[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<PatientPayload | null>(null);
+
+  // Controlled fields
   const [totalAmount, setTotalAmount] = useState<number>(0);
   const [paymentMethod, setPaymentMethod] = useState('CASH');
   const [paidAmount, setPaidAmount] = useState<number>(0);
@@ -113,6 +116,58 @@ const Billing = () => {
     navigate('/admin/patients/new-patient');
   };
 
+  // ---  Auto-calculation handlers for live input sync between Paid & Due  ---
+  // Invariant: totalAmount = paidAmount + dueAmount
+
+  // Handle user edits to Total Amount field
+  const handleTotalAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTotal = Number(e.target.value);
+
+    // If paidAmount has value, auto-calc due
+    // If dueAmount has value and paid = 0, auto-calc paid
+    if (!isNaN(newTotal)) {
+      setTotalAmount(newTotal);
+
+      // If paid field has a non-zero value and the user is not entering due, update due.
+      if (paidAmount > 0 && !dueAmountFocused) {
+        setDueAmount(Math.max(newTotal - paidAmount, 0));
+      }
+      // If due field has a non-zero value and the user is not entering paid, update paid.
+      else if (dueAmount > 0 && !paidAmountFocused) {
+        setPaidAmount(Math.max(newTotal - dueAmount, 0));
+      }
+      // If both paid and due are 0, reset both.
+      else if (paidAmount === 0 && dueAmount === 0) {
+        setDueAmount(0);
+        setPaidAmount(0);
+      }
+    } else {
+      setTotalAmount(0);
+    }
+  };
+
+  // Handle user edits to Paid Amount field
+  const handlePaidAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const paid = Number(e.target.value);
+
+    setPaidAmount(paid);
+    // Only auto-set due when not focused on due AND totalAmount is set
+    if (!dueAmountFocused && totalAmount > 0) {
+      setDueAmount(Math.max(totalAmount - paid, 0));
+    }
+  };
+
+  // Handle user edits to Due Amount field
+  const handleDueAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const due = Number(e.target.value);
+
+    setDueAmount(due);
+    // Only auto-set paid when not focused on paid AND totalAmount is set
+    if (!paidAmountFocused && totalAmount > 0) {
+      setPaidAmount(Math.max(totalAmount - due, 0));
+    }
+  };
+
   const handleSaveBilling = () => {
     if (!selectedPatient || !totalAmount) return;
     const newRecord: BillingPayload = {
@@ -140,7 +195,12 @@ const Billing = () => {
     const ws = XLSX.utils.json_to_sheet(filtered);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "BillingRecords");
-    XLSX.writeFile(wb, "billing_records.xlsx");
+    const now = new Date();
+    const day = now.getDate().toString().padStart(2, '0');
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    const year = now.getFullYear();
+    const filename = `billing_records_${year}-${month}-${day}.xlsx`;
+    XLSX.writeFile(wb, filename);
   };
 
   // Totals: for reporting/exports
@@ -168,35 +228,61 @@ const Billing = () => {
 
   // Export to PDF
   const exportToPDF = () => {
-    const doc = new jsPDF();
-
+    const doc = new jsPDF({ orientation: "landscape" });
+  
     const pageWidth = doc.internal.pageSize.getWidth();
     let y = 20;
-
-    doc.setFontSize(18);
+  
+    // =========================
+    // HEADER
+    // =========================
     doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+  
     const headerText = "Pristine Dental & Maxillofacial Center Pvt.Ltd.";
     const headerWidth = doc.getTextWidth(headerText);
+  
     doc.text(headerText, (pageWidth - headerWidth) / 2, y);
+  
+    // Underline header
     doc.setLineWidth(0.7);
     doc.line(
-      (pageWidth - headerWidth) / 2, y + 2,
-      (pageWidth + headerWidth) / 2, y + 2
+      (pageWidth - headerWidth) / 2,
+      y + 2,
+      (pageWidth + headerWidth) / 2,
+      y + 2
     );
+  
     y += 10;
+  
     doc.setFontSize(15);
     doc.setFont("helvetica", "normal");
-    doc.text("Daily OPD BOOK", pageWidth / 2, y, { align: 'center' });
-    // Date and Month (top-right)
+    doc.text("Daily OPD BOOK", pageWidth / 2, y, { align: "center" });
+  
+    // =========================
+    // DATE & MONTH (TOP RIGHT)
+    // =========================
     const now = new Date();
-    const dateStr = `Date: ${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
-    const monthStr = `Month: ${(now.getMonth() + 1).toString().padStart(2, '0')}`;
+    const dateStr = `Date: ${now
+      .getDate()
+      .toString()
+      .padStart(2, "0")}/${(now.getMonth() + 1)
+      .toString()
+      .padStart(2, "0")}/${now.getFullYear()}`;
+  
+    const monthStr = `Month: ${(now.getMonth() + 1)
+      .toString()
+      .padStart(2, "0")}`;
+  
     doc.setFontSize(11);
-    doc.text(dateStr, pageWidth - 20, 17, { align: 'right' });
-    doc.text(monthStr, pageWidth - 20, 23, { align: 'right' });
-    y += 7;
-
-    // Table
+    doc.text(dateStr, pageWidth - 20, 30, { align: "right" });
+    doc.text(monthStr, pageWidth - 20, 36, { align: "right" });
+  
+    y += 10;
+  
+    // =========================
+    // TABLE COLUMNS
+    // =========================
     const tableColumn = [
       "Reg. No",
       "Name",
@@ -210,62 +296,52 @@ const Billing = () => {
       "Paid",
       "Due",
       "Expenses"
-      // Don't add Actions column in PDF export
     ];
+  
     const filtered = filterNonZeroBilling(billingRecords);
-    const tableRows = filtered.map(r => [
-      r.id,
-      r.opdEntry?.fullName ?? '',
-      r.opdEntry?.age ?? '',
-      r.opdEntry?.address ?? '',
-      r.opdEntry?.phoneNumber ?? '',
-      r.opdEntry?.treatment ?? '',
-      r.opdEntry?.doctorId ?? '',
-      r.totalAmount,
+  
+    const tableRows = filtered.map((r, idx) => [
+      idx + 1,
+      r.opdEntry?.fullName ?? "",
+      r.opdEntry?.age ?? "",
+      r.opdEntry?.address ?? "",
+      r.opdEntry?.phoneNumber ?? "",
+      r.opdEntry?.treatment ?? "",
+      r.opdEntry?.doctor?.fullName ?? "",
+      r.totalAmount.toLocaleString(),
       r.paymentMethod,
-      r.paidAmount,
-      r.dueAmount,
-      r.expenseAmount
+      r.paidAmount.toLocaleString(),
+      r.dueAmount.toLocaleString(),
+      r.expenseAmount.toLocaleString()
     ]);
-
+  
     const totals = getTotals();
-
-    // @ts-ignore-next-line
+  
+    // =========================
+    // MAIN TABLE
+    // =========================
     autoTable(doc, {
       head: [tableColumn],
-      body: tableRows.map(row =>
-        row.map(cell =>
-          cell === undefined ? '' : cell // Replace undefined with an empty string for type-safety
-        )
-      ),
-      startY: y + 5,
-      theme: 'grid',
-      didDrawPage: (data) => {
-        autoTable(doc, {
-          body: [
-            [
-              { content: 'Total Amount:', colSpan: 7, styles: { fontStyle: 'bold' as const, textColor: [0, 0, 160] } },
-              totals.totalAmount.toLocaleString(),
-              "",
-              totals.counter.toLocaleString(),
-              totals.online.toLocaleString(),
-              totals.expenses.toLocaleString()
-            ]
-          ],
-          startY: (data as any)?.cursor?.y ? (data as any).cursor.y + 2 : 0, // Defensive for possibly null cursor
-          theme: 'plain',
-          styles: { fontStyle: 'bold' as const, halign: 'right' as const },
-          columnStyles: {
-            0: { halign: 'right' as const },
-            7: { halign: 'right' as const },
-            9: { halign: 'right' as const },
-            10: { halign: 'right' as const },
-            11: { halign: 'right' as const }
-          }
-        });
-      }
-    });
-    doc.save('billing_records.pdf');
+      body: tableRows,
+      startY: y,
+      theme: "grid",
+  
+      headStyles: {
+        fillColor: [210, 210, 210],
+        textColor: 0,
+        fontStyle: "bold",
+        halign: "center"
+      },
+  
+      styles: {
+        fontSize: 9,
+        cellPadding: 3,
+        halign: "center",
+        valign: "middle"
+      },
+    })
+  
+    doc.save("billing_records.pdf");
   };
 
   // Print Handler
@@ -338,118 +414,6 @@ const Billing = () => {
         win.print();
         // win.close();
       }, 300);
-    }
-  };
-
-  // Print Single Bill Handler
-  const handlePrintSingleBill = (billing: BillingPayload) => {
-    // Prepare a print window with nice formatting for the bill, including header, patient info, and billing breakdown
-    const now = new Date();
-    const dateStr = `Date: ${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
-    const monthStr = `Month: ${(now.getMonth() + 1).toString().padStart(2, '0')}`;
-
-    // Print content HTML
-    const printHeaderHTML = `
-      <div style="text-align: center; margin-bottom:10px;">
-        <div style="font-weight: bold; font-size: 22px;">Pristine Dental & Maxillofacial Center Pvt.Ltd.</div>
-        <div style="font-size:16px;font-weight:600;margin-bottom:3px;">Billing Receipt</div>
-      </div>
-      <div style="text-align: right; font-size: 13px; margin-bottom: 8px; font-weight: 600;">
-        ${dateStr} &nbsp; ${monthStr}
-      </div>
-      <hr>
-    `;
-
-    const patientInfoHTML = `
-      <div style="margin-bottom:12px;font-size:15px;">
-        <table style="width:100%;font-size:14px;">
-          <tbody>
-            <tr>
-              <td><strong>Patient:</strong></td>
-              <td>${billing.opdEntry?.fullName ?? '--'}</td>
-              <td><strong>Reg. No:</strong></td>
-              <td>${billing.id}</td>
-            </tr>
-            <tr>
-              <td><strong>Age:</strong></td>
-              <td>${billing.opdEntry?.age ?? '--'}</td>
-              <td><strong>Phone:</strong></td>
-              <td>${billing.opdEntry?.phoneNumber ?? '--'}</td>
-            </tr>
-            <tr>
-              <td><strong>Address:</strong></td>
-              <td colspan="3">${billing.opdEntry?.address ?? '--'}</td>
-            </tr>
-            <tr>
-              <td><strong>Treatment:</strong></td>
-              <td colspan="3">${billing.opdEntry?.treatment ?? '--'}</td>
-            </tr>
-            <tr>
-              <td><strong>Doctor:</strong></td>
-              <td colspan="3">${billing.opdEntry?.doctor?.fullName ?? billing.opdEntry?.doctorId ?? '--'}</td>
-            </tr>
-            <tr>
-              <td><strong>Entry Date:</strong></td>
-              <td colspan="3">${billing.opdEntry?.entryDate ?? '--'}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    `;
-
-    const billingTableHTML = `
-      <div style="margin-bottom:0;">
-        <table style="width:100%;border-collapse:collapse;">
-          <thead>
-            <tr>
-              <th style="border:1px solid #ccc;padding:7px;text-align:left;">Total</th>
-              <th style="border:1px solid #ccc;padding:7px;text-align:left;">Payment Option</th>
-              <th style="border:1px solid #ccc;padding:7px;text-align:left;">Paid</th>
-              <th style="border:1px solid #ccc;padding:7px;text-align:left;">Due</th>
-              <th style="border:1px solid #ccc;padding:7px;text-align:left;">Expenses</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style="border:1px solid #ccc;padding:7px;">Rs. ${(billing.totalAmount ?? 0).toLocaleString()}</td>
-              <td style="border:1px solid #ccc;padding:7px;">${billing.paymentMethod}</td>
-              <td style="border:1px solid #ccc;padding:7px;">Rs. ${(billing.paidAmount ?? 0).toLocaleString()}</td>
-              <td style="border:1px solid #ccc;padding:7px;">Rs. ${(billing.dueAmount ?? 0).toLocaleString()}</td>
-              <td style="border:1px solid #ccc;padding:7px;">Rs. ${(billing.expenseAmount ?? 0).toLocaleString()}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    `;
-
-    const billFooterHTML = `
-      <div style="margin-top:24px;text-align:center;font-size:13px;color:#333;">
-        Thank you for your visit!
-      </div>
-    `;
-
-    const style = `
-      <style>
-        body { font-family: Arial, Helvetica, sans-serif; color: #1f2937; padding:0 12px; }
-        table { border-collapse: collapse; }
-        th, td { font-size: 14px; }
-        hr { margin: 13px 0; }
-      </style>
-    `;
-    const win = window.open('', '_blank', 'width=650,height=550');
-    if (win) {
-      win.document.write(`<html><head><title>Print Single Bill</title>${style}</head><body>`);
-      win.document.write(printHeaderHTML);
-      win.document.write(patientInfoHTML);
-      win.document.write(billingTableHTML);
-      win.document.write(billFooterHTML);
-      win.document.write('</body></html>');
-      win.document.close();
-      win.focus();
-      setTimeout(() => {
-        win.print();
-        // win.close();
-      }, 250);
     }
   };
 
@@ -598,7 +562,7 @@ const Billing = () => {
                 value={renderNumberInputValue(totalAmount, totalAmountFocused)}
                 onFocus={() => setTotalAmountFocused(true)}
                 onBlur={() => setTotalAmountFocused(false)}
-                onChange={e => setTotalAmount(Number(e.target.value))}
+                onChange={handleTotalAmountChange}
                 placeholder="Enter total"
                 className="admin-input"
                 min="0"
@@ -625,7 +589,7 @@ const Billing = () => {
                 value={renderNumberInputValue(paidAmount, paidAmountFocused)}
                 onFocus={() => setPaidAmountFocused(true)}
                 onBlur={() => setPaidAmountFocused(false)}
-                onChange={e => setPaidAmount(Number(e.target.value))}
+                onChange={handlePaidAmountChange}
                 placeholder="Paid amount"
                 className="admin-input"
                 min="0"
@@ -638,7 +602,7 @@ const Billing = () => {
                 value={renderNumberInputValue(dueAmount, dueAmountFocused)}
                 onFocus={() => setDueAmountFocused(true)}
                 onBlur={() => setDueAmountFocused(false)}
-                onChange={e => setDueAmount(Number(e.target.value))}
+                onChange={handleDueAmountChange}
                 placeholder="Due amount"
                 className="admin-input"
                 min="0"

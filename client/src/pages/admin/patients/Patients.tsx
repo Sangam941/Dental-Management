@@ -23,7 +23,6 @@ import type { PatientPayload } from '../../../types';
 import { useDoctorStore } from '../../../store/doctorStore';
 
 const Patients: React.FC = () => {
-
     // zustand
     const { fetchPatients, patients, updatePatient, deletePatient } = usePatientStore()
     const { doctors } = useDoctorStore()
@@ -35,6 +34,10 @@ const Patients: React.FC = () => {
     const [patientList] = useState(patients);
     const [Id, setId] = useState<string>('')
     const [doctorId, setDoctorId] = useState<string>('')
+
+    // Date filter states
+    const [dateFrom, setDateFrom] = useState('');
+    const [dateTo, setDateTo] = useState('');
 
     //edit states
     const [editFullName, setfullname] = useState('');
@@ -49,8 +52,9 @@ const Patients: React.FC = () => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
     const [gender, setGender] = useState('')
 
-
+    // Date wise filter logic
     const filteredPatients = patients?.filter(patient => {
+        // --- Search filters ---
         const matchesSearch = patient?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             patient?.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             patient?.treatment?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -59,7 +63,6 @@ const Patients: React.FC = () => {
 
         let matchesAge = true;
         if (selectedAge !== 'All Ages') {
-            // Split the range into 10-year increments where possible
             if (selectedAge === '0-9') matchesAge = patient.age >= 0 && patient.age <= 9;
             else if (selectedAge === '10-19') matchesAge = patient.age >= 10 && patient.age <= 19;
             else if (selectedAge === '20-29') matchesAge = patient.age >= 20 && patient.age <= 29;
@@ -71,10 +74,27 @@ const Patients: React.FC = () => {
             else if (selectedAge === '80+') matchesAge = patient.age >= 80;
         }
 
-        return matchesSearch && matchesGender && matchesAge;
+        // --- Date wise filter ---
+        let matchesDate = true;
+        if (dateFrom) {
+            // patient.entryDate should be >= dateFrom
+            if (patient.entryDate) {
+                matchesDate = patient.entryDate >= dateFrom;
+            } else {
+                matchesDate = false;
+            }
+        }
+        if (matchesDate && dateTo) {
+            // patient.entryDate should be <= dateTo
+            if (patient.entryDate) {
+                matchesDate = patient.entryDate <= dateTo;
+            } else {
+                matchesDate = false;
+            }
+        }
+
+        return matchesSearch && matchesGender && matchesAge && matchesDate;
     });
-
-
 
     // --- EDIT ---
     const openEditModal = (patient: PatientPayload) => {
@@ -89,7 +109,6 @@ const Patients: React.FC = () => {
         setDoctorId(patient.doctorId)
         setCaseType(patient.caseType);
         setEditEntryDateBs(patient.entryDate);
-
         setIsEditModalOpen(true);
     };
 
@@ -106,9 +125,7 @@ const Patients: React.FC = () => {
             caseType: caseType,
             address: editAddress
         }
-
         updatePatient(Id, updatedData)
-
     };
 
     // --- DELETE ---
@@ -121,7 +138,6 @@ const Patients: React.FC = () => {
         setIsDeleteModalOpen(false);
         deletePatient(Id);
     };
-
 
     useEffect(() => {
         fetchPatients()
@@ -173,8 +189,8 @@ const Patients: React.FC = () => {
                         className="w-full pl-12 pr-4 py-3 bg-admin-surface border border-admin-border rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-admin-primary/20 transition-all"
                     />
                 </div>
-                <div className="flex items-center gap-3 w-full lg:w-auto">
-                    <div className="relative w-full lg:w-64">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full lg:w-auto">
+                    <div className="relative w-full lg:w-32">
                         <select
                             value={selectedGender}
                             onChange={(e) => setSelectedGender(e.target.value)}
@@ -187,7 +203,7 @@ const Patients: React.FC = () => {
                         </select>
                         <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-admin-text-faint pointer-events-none" size={16} />
                     </div>
-                    <div className="relative flex-1 lg:w-48">
+                    <div className="relative flex-1 lg:w-26">
                         <select
                             value={selectedAge}
                             onChange={(e) => setSelectedAge(e.target.value)}
@@ -197,15 +213,45 @@ const Patients: React.FC = () => {
                         </select>
                         <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-admin-text-faint pointer-events-none" size={16} />
                     </div>
-                    <button className="p-3 bg-admin-surface border border-admin-border rounded-xl text-admin-text-muted hover:bg-white hover:text-admin-primary transition-all">
-                        <Filter size={20} />
-                    </button>
+                    {/* From/To dates with proper overflow wrap on mobile */}
+                    <div className="flex flex-col sm:flex-row gap-2 flex-1">
+                        {/* Date From */}
+                        <div className="relative w-full">
+                            <label className="absolute left-4 top-1 text-[10px] font-bold text-admin-text-faint uppercase tracking-widest bg-white px-1 z-10" htmlFor="date-from">
+                                From
+                            </label>
+                            <input
+                                id="date-from"
+                                type="date"
+                                value={dateFrom}
+                                onChange={e => setDateFrom(e.target.value)}
+                                className="w-full pl-4 pr-4 pt-6 pb-2 bg-admin-surface border border-admin-border rounded-xl text-xs font-bold text-admin-text focus:outline-none focus:ring-2 focus:ring-admin-primary/20 transition-all"
+                                placeholder="From Date"
+                                style={{ minWidth: 0 }}
+                            />
+                        </div>
+                        {/* Date To */}
+                        <div className="relative w-full">
+                            <label className="absolute left-4 top-1 text-[10px] font-bold text-admin-text-faint uppercase tracking-widest bg-white px-1 z-10" htmlFor="date-to">
+                                To
+                            </label>
+                            <input
+                                id="date-to"
+                                type="date"
+                                value={dateTo}
+                                onChange={e => setDateTo(e.target.value)}
+                                className="w-full pl-4 pr-4 pt-6 pb-2 bg-admin-surface border border-admin-border rounded-xl text-xs font-bold text-admin-text focus:outline-none focus:ring-2 focus:ring-admin-primary/20 transition-all"
+                                placeholder="To Date"
+                                style={{ minWidth: 0 }}
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
 
             {/* Table Section */}
             <div className="bg-white rounded-3xl border border-admin-border shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto" style={{ maxWidth: '100vw' }}>
                     <table className="w-full border-collapse min-w-[1000px]">
                         <thead>
                             <tr className="bg-white border-b border-admin-border-subtle">
@@ -301,10 +347,10 @@ const Patients: React.FC = () => {
 
             {/* ───────────────────── EDIT MODAL ───────────────────── */}
             {isEditModalOpen && (
-                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 overflow-auto">
                     <div
-                        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-admin-border animate-fade-in flex flex-col"
-                        style={{ maxHeight: '80%' }}
+                        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-admin-border animate-fade-in flex flex-col max-h-[90vh]"
+                        style={{ maxHeight: '90vh', overflow: 'hidden' }}
                     >
                         <div className="flex items-center justify-between px-6 py-5 border-b border-admin-border-subtle shrink-0">
                             <div className="flex items-center gap-3">
@@ -354,7 +400,7 @@ const Patients: React.FC = () => {
                                         value={editAddress}
                                         onChange={e => setEditAddress(e.target.value)}
                                         className="w-full px-4 py-2 border border-admin-border rounded-lg focus:outline-none focus:ring-2 focus:ring-admin-primary"
-                                        placeholder="Enter full name"
+                                        placeholder="Enter address"
                                         required
                                     />
                                 </div>
@@ -428,7 +474,6 @@ const Patients: React.FC = () => {
                                             value={editDoctor}
                                             onChange={e => {
                                                 setEditDoctor(e.target.value);
-                                                // Find the department by name to get its id
                                                 const selectedDoc = doctors?.find(doctor => doctor.fullName === e.target.value);
                                                 if (selectedDoc) {
                                                     setDoctorId(selectedDoc?.id);
@@ -448,7 +493,7 @@ const Patients: React.FC = () => {
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 gap-8">
-                                    <div className="space-y-1.5">
+                                    <div className="space-y-1.5 relative">
                                         <label className="admin-label">Case Type</label>
                                         <select
                                             value={caseType}
@@ -501,7 +546,7 @@ const Patients: React.FC = () => {
 
             {/* ───────────────────── DELETE MODAL ───────────────────── */}
             {isDeleteModalOpen && (
-                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 overflow-auto">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm border border-admin-border animate-fade-in">
                         <div className="px-6 py-6 text-center space-y-3">
                             <div className="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto">
@@ -535,6 +580,5 @@ const Patients: React.FC = () => {
         </div>
     )
 }
-
 
 export default Patients;

@@ -160,7 +160,7 @@ const ManageDoctors: React.FC = () => {
                         className="w-full pl-4 pr-10 py-2.5 bg-admin-surface border border-admin-border rounded-xl text-xs font-bold text-admin-text focus:outline-none focus:ring-2 focus:ring-admin-primary/20 transition-all appearance-none cursor-pointer"
                     >
                         <option value="All Gender">All Gender</option>
-                        {/* <option key={'Male'} value={'MALE'}>MALE</option> */}
+                        <option key={'Male'} value={'MALE'}>MALE</option>
                         <option key={'female'} value={'FEMALE'}>FEMALE</option>
                         <option key={'others'} value={'OTHERS'}>OTHERS</option>
                     </select>
